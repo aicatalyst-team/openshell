@@ -3,7 +3,7 @@
 apiVersion: autopoc.example/v1
 kind: SandboxWorkloadTemplateDescriptor
 metadata:
-  name: deepseek-node-pinned
+  name: deepseek-nodepin
   workspace: default
 spec:
   workload:

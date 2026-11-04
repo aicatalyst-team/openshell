@@ -25,7 +25,7 @@ IMAGE = os.environ.get(
 HEALTH_URL = os.environ.get("AUTOPOC_HEALTH_URL", "http://127.0.0.1:8081/healthz")
 GATEWAY_ENDPOINT = os.environ.get("AUTOPOC_GATEWAY_ENDPOINT", "127.0.0.1:8080")
 TLS_DIR = pathlib.Path(os.environ["AUTOPOC_TLS_DIR"])
-TEMPLATE_NAME = "deepseek-node-pinned"
+TEMPLATE_NAME = "deepseek-nodepin"
 
 recorder = AttemptRecorder.from_environment()
 results: list[dict] = []
