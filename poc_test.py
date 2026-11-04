@@ -388,6 +388,51 @@ def scenario_network_policy_enforcement():
             error=None if denied_ok else "denied egress was not blocked",
         )
 
+        # (b2) real-reachable negative control: 1.1.1.1:443 is reachable from
+        # the cluster (verified outside the sandbox) but is NOT in the sandbox
+        # policy, so the kernel-mediated boundary should block it. This
+        # disambiguates the doc-address (198.51.100.1) denial: a failure to
+        # reach a documentation IP alone does not prove policy caused it, but a
+        # real reachable host being blocked does.
+        if tool == "curl":
+            ctrl_cmd = [
+                "sh",
+                "-c",
+                "curl -sS -o /dev/null --connect-timeout 12 --max-time 15 -k "
+                "https://1.1.1.1/ 2>/dev/null; echo CTRL_RC:$?",
+            ]
+        elif tool == "python3":
+            ctrl_cmd = [
+                "python3",
+                "-c",
+                "import socket;"
+                "s=socket.socket(); s.settimeout(15);"
+                "try: s.connect(('1.1.1.1', 443)); print('CTRL_RC:0')"
+                "except Exception as e: print('CTRL_RC:1')",
+            ]
+        else:
+            ctrl_cmd = [
+                "bash",
+                "-c",
+                "timeout 15 bash -c 'exec 3<>/dev/tcp/1.1.1.1/443' && "
+                "echo CTRL_RC:0 || echo CTRL_RC:1",
+            ]
+        c_start = time.monotonic()
+        ctrl = sandbox_exec(session, ctrl_cmd, timeout_seconds=45)
+        ctrl_text = (ctrl.stdout or "") + (ctrl.stderr or "")
+        negctrl_blocked = any(
+            tag in ctrl_text for tag in ("CTRL_RC:1", "CTRL_RC:7", "CTRL_RC:28")
+        )
+        if any(tag in ctrl_text for tag in ("CTRL_RC:0", "CTRL_RC:52")):
+            negctrl_blocked = False
+        recorder.record(
+            "network-policy-enforcement",
+            "exec",
+            "pass" if negctrl_blocked else "fail",
+            time.monotonic() - c_start,
+            error=None if negctrl_blocked else "real reachable host was not blocked",
+        )
+
         # (c) outer fence: a NetworkPolicy governing the sandbox pod exists.
         code, np_out, np_err = kubectl("get", "networkpolicies", "-o", "json")
         fence_names = []
@@ -401,10 +446,16 @@ def scenario_network_policy_enforcement():
                 if "openshell.ai/boundary-pair" in sel or "openshell.ai/managed-by" in sel:
                     fence_names.append(np["metadata"]["name"])
 
-        outcome = "pass" if (allowed_ok and denied_ok and fence_names) else "fail"
+        # Enforcement is demonstrated when the in-policy real host is allowed
+        # AND a real reachable out-of-policy host is blocked, with the outer
+        # fence present. The doc-address denial (b) is corroborating only: a
+        # documentation IP is unreachable regardless of policy, so it cannot by
+        # itself prove the boundary blocked the egress.
+        outcome = "pass" if (allowed_ok and negctrl_blocked and fence_names) else "fail"
         detail = (
-            f"tool={tool}; allowed example.com -> {allowed_text.strip()[:120]}; "
-            f"denied 198.51.100.1 -> {denied_text.strip()[:120]}; "
+            f"tool={tool}; allowed example.com[in-policy] -> {allowed_text.strip()[:120]}; "
+            f"negctrl 1.1.1.1:443[real,out-of-policy] -> {ctrl_text.strip()[:120]}; "
+            f"denied 198.51.100.1[doc] -> {denied_text.strip()[:120]}; "
             f"outer-fence NetworkPolicies: {fence_names}"
         )
         err = None if outcome == "pass" else ("enforcement assertion failed: " + detail)
