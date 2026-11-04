@@ -1,0 +1,18 @@
+# Descriptor for the reusable sandbox workload template created through the
+# OpenShell Python SDK during validation. This is not applied with kubectl.
+apiVersion: autopoc.example/v1
+kind: SandboxWorkloadTemplateDescriptor
+metadata:
+  name: deepseek-node-pinned
+  workspace: default
+spec:
+  workload:
+    image: registry.access.redhat.com/ubi9/ubi-minimal:9.6
+    resources:
+      cpu: "500m"
+      memory: 512Mi
+  driver_config:
+    kubernetes:
+      pod:
+        node_selector:
+          kubernetes.io/hostname: ocp-gb-xz56l-worker-2-nsrd9

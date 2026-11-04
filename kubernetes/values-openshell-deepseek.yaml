@@ -1,0 +1,104 @@
+# AutoPoC Helm values for run ac05c639abd848998db29ce2352d9a0f.
+# Source revision: f4a6137513b777c9b362be54baf388f7d45398aa
+# Namespace: poc-openshell-deepseek; release: openshell.
+
+global:
+  image:
+    registry: quay.io/aicatalyst
+    pullPolicy: Always
+
+gateway:
+  image:
+    registry: quay.io/aicatalyst
+    repository: openshell-gateway
+    tag: deepseek-ac05c639
+    pullPolicy: Always
+
+sandboxRuntime:
+  image:
+    registry: quay.io/aicatalyst
+    repository: openshell-sandbox
+    tag: deepseek-ac05c639
+    pullPolicy: Always
+
+supervisor:
+  image:
+    registry: quay.io/aicatalyst
+    repository: openshell-supervisor
+    tag: deepseek-ac05c639
+    pullPolicy: Always
+  replicas: 1
+  podDisruptionBudget:
+    enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: null
+    runAsGroup: null
+    fsGroup: null
+    seccompProfile:
+      type: RuntimeDefault
+
+# The operator pre-created this ServiceAccount and bound the preinstalled
+# runtime ClusterRole/Binding to it. Do not create or replace it.
+serviceAccount:
+  create: false
+  name: openshell
+
+# The operator preinstalled autopoc-openshell-deepseek-runtime cluster-wide and
+# bound it only to the openshell ServiceAccount in this namespace.
+rbac:
+  create: true
+  clusterScoped:
+    create: false
+
+# Let OpenShift restricted-v2 assign the namespace UID/GID range.
+podSecurityContext: null
+securityContext:
+  runAsNonRoot: true
+  runAsUser: null
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Pin the gateway (and therefore its SQLite data claim) to eu-gb-2, where the
+# prior run observed attachment headroom.
+nodeSelector:
+  kubernetes.io/hostname: ocp-gb-xz56l-worker-2-nsrd9
+
+resources:
+  requests:
+    cpu: "2"
+    memory: 4Gi
+  limits:
+    cpu: "4"
+    memory: 8Gi
+
+server:
+  telemetryEnabled: false
+  dataStorageSize: "10Gi"
+  dataStorageClass: ibmc-vpc-block-10iops-tier
+  workspaceDefaultStorageSize: "10Gi"
+  workspaceStorageClass: ibmc-vpc-block-10iops-tier
+  sandboxNamespace: poc-openshell-deepseek
+
+gatewayConfig:
+  # Development evaluation only: the client certificate is the access gate,
+  # and this promotes the already cert-verified caller to a development
+  # principal. It is not production authentication.
+  openshell.gateway.auth:
+    allow_unauthenticated_users: true
+  openshell.drivers.kubernetes:
+    supervisor_topology: gateway
+    # Required so the workload template can pin the sandbox workload Pod to
+    # eu-gb-2 with kubernetes.pod.node_selector.
+    allow_driver_config: true
+
+networkPolicy:
+  enabled: true
+
+agentSandbox:
+  preflight:
+    enabled: true
