@@ -95,10 +95,19 @@ Use gateway metadata, deployment values, or the user's setup notes to identify t
 
 Before debugging the compute platform, inspect gateway logs for failures in dependencies initialized before the listener becomes ready.
 
-The gateway container uses a Distroless Debian runtime. For OS-library
+The released gateway container uses a Distroless Debian runtime by default. For OS-library
 vulnerability findings, check the deployed image digest and package version;
 deploy a rebuilt gateway image with the patched base. Updating the gateway
 binary alone does not update the libraries supplied by its container image.
+
+For UBI9 source builds, a vendored `z3-sys` failure naming the C++ `<format>`
+header indicates an older compiler was selected. Install `gcc-toolset-15-gcc-c++`
+and select its `gcc`/`g++` through `CC`/`CXX`, plus its `gcc` through
+`CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER`. The toolset's `libstdc++.so`
+is a linker script that combines the system library with
+`libstdc++_nonshared`; verify `ldd` and execution in the chosen runtime image
+before adding library copies or changing the runtime base. This compiler check
+does not establish gateway health or sandbox isolation.
 
 For stable releases, inspect the version tag or deployed digest. Promotion
 preserves the qualified prerelease's commit-SHA image tags; those tags do not

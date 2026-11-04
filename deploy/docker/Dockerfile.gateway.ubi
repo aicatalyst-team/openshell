@@ -23,11 +23,18 @@ RUN dnf install -y \
         ca-certificates \
         curl-minimal \
         gcc gcc-c++ make cmake pkg-config \
+        gcc-toolset-15-gcc-c++ \
         clang clang-devel \
         openssl-devel \
         perl-core \
     && dnf clean all \
     && rm -rf /var/cache/dnf
+
+# Vendored Z3 uses C++20 <format>. Select the toolset for both CMake and
+# Rust linking so its libstdc++_nonshared compatibility archive is included.
+ENV CC=/opt/rh/gcc-toolset-15/root/usr/bin/gcc \
+    CXX=/opt/rh/gcc-toolset-15/root/usr/bin/g++ \
+    CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=/opt/rh/gcc-toolset-15/root/usr/bin/gcc
 
 RUN curl -fsSL https://sh.rustup.rs -o /tmp/rustup-init.sh \
     && . /tmp/rustup-init.sh -y --profile minimal --default-toolchain 1.95.0 \
