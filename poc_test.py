@@ -20,6 +20,7 @@ import os
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 from autopoc.capture import AttemptRecorder
 
@@ -75,10 +76,12 @@ def make_client():
     tls_dir = load_client_tls()
     return SandboxClient(
         GRPC_ENDPOINT,
+        # TlsConfig fields are typed pathlib.Path; the SDK calls .read_bytes()
+        # on them, so pass Path objects (not the str that os.path.join yields).
         tls=TlsConfig(
-            ca_path=os.path.join(tls_dir, "ca.crt"),
-            cert_path=os.path.join(tls_dir, "tls.crt"),
-            key_path=os.path.join(tls_dir, "tls.key"),
+            ca_path=Path(tls_dir, "ca.crt"),
+            cert_path=Path(tls_dir, "tls.crt"),
+            key_path=Path(tls_dir, "tls.key"),
         ),
         timeout=30.0,
     )
