@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drawing a kernel-enforced line around AI agents on OpenShift AI</title>
-  <meta name="description" content="We containerized and deployed NVIDIA OpenShell, a kernel-enforced sandbox for autonomous AI agents, on Red Hat OpenShift AI. The gateway control plane passed; the sandbox hit a real storage quota. A candid PoC writeup.">
+  <title>Testing NVIDIA OpenShell on Red Hat OpenShift</title>
+  <meta name="description" content="We source-built NVIDIA OpenShell images and deployed its control plane on Red Hat OpenShift. The gateway control plane passed; the sandbox hit a real storage quota. A candid PoC writeup.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;600;700&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -85,9 +85,9 @@
   <div class="blog-bar"><div class="blog-bar-inner">Red Hat Developer Blog <span class="sep">/</span> AI/ML <span class="sep">/</span> OpenShift AI</div></div>
   <section class="hero">
     <div class="hero-inner">
-      <span class="hero-label">Red Hat OpenShift AI</span>
-      <h1>Drawing a kernel-enforced line around AI agents on OpenShift AI</h1>
-      <p class="subtitle">We built and deployed NVIDIA OpenShell on Red Hat OpenShift AI. The control plane passed. The sandbox hit a real storage wall. Here is exactly where it stopped.</p>
+      <span class="hero-label">Red Hat OpenShift</span>
+      <h1>Testing NVIDIA OpenShell on Red Hat OpenShift</h1>
+      <p class="subtitle">We built and deployed NVIDIA OpenShell on Red Hat OpenShift. The control plane passed. The sandbox hit a real storage wall. Here is exactly where it stopped.</p>
       <div class="hero-meta">
         <span class="author">AutoPoC</span>
         <span class="dot">&middot;</span>
@@ -98,10 +98,10 @@
     </div>
   </section>
   <article class="article-wrap"><h2>What is OpenShell?</h2>
-<p>Autonomous agents run code you did not write, on nodes you share with everything else on the cluster. OpenShell, from NVIDIA, draws a kernel-enforced line around those agents, and this post shows how far that line holds when it meets a real <a href="https://www.redhat.com/en/technologies/cloud-computing/openshift">Red Hat OpenShift AI</a> cluster.</p>
-<p>It doesn't trust an agent process to behave. Instead it instruments the Linux kernel: Landlock for filesystem policy, nested seccomp user-notification (a trap that hands each syscall to a supervisor for a yes-or-no decision) for syscall and network mediation, and SO_BINDTODEVICE (which pins each socket to a single network device). A Rust gateway fronts the control plane over gRPC (Google Remote Procedure Call), a trusted supervisor mediates each sandbox's traffic, and a workload-side sandbox runtime owns the agent's process tree. Policy changes are checked with z3 formal verification before they take effect.</p>
+<p>Autonomous agents run code you did not write, on nodes you share with everything else on the cluster. OpenShell, from NVIDIA, is designed to isolate those agents. This PoC built its runtime images and tested control-plane access on a <a href="https://www.redhat.com/en/technologies/cloud-computing/openshift">Red Hat OpenShift</a> cluster.</p>
+<p>It doesn't trust an agent process to behave. Instead it instruments the Linux kernel: Landlock for filesystem policy, nested seccomp user-notification (a mechanism that sends selected system calls to a supervisor for policy decisions) for syscall and network mediation, and SO_BINDTODEVICE (which pins each socket to a single network device). A Rust gateway fronts the control plane over gRPC, a trusted supervisor mediates each sandbox's traffic, and a workload-side sandbox runtime owns the agent's process tree. The project includes z3-based policy verification; this PoC did not test that mechanism.</p>
 <p>The short version: it's a hard boundary you can put around an agent, and it ships with its own Helm chart for Kubernetes. If you want the full platform context, the <a href="https://docs.redhat.com/">OpenShift AI documentation</a> is a good place to start.</p>
-<h2>Why it matters for Red Hat OpenShift AI</h2>
+<h2>Why it matters for Red Hat OpenShift</h2>
 <p>OpenShift AI is where autonomous agent workloads increasingly run, and those workloads need a boundary that respects the platform rather than fighting it. OpenShell deploys through the Agent Sandbox controller and a standard Helm chart, targets the restricted-v2 SCC (Security Context Constraint), and needs no privileged SCC. That makes it a natural fit alongside the rest of an OpenShift AI estate: the agents stay contained, and the platform keeps its usual RBAC (role-based access control) and SCC story.</p>
 <p>We wanted to test the isolation claims on a live cluster, not just read them in the docs. The result is mixed, and we'll show you exactly where it stopped.</p>
 <h2>The components we chose to deploy</h2>
@@ -118,7 +118,7 @@ graph LR
 <p><strong>Figure 1. OpenShell component flow. The dashed edges are control-plane objects, not runtime hops.</strong></p>
 <p>One distinction matters for what comes next: the gateway and the supervisor are the only workloads the Helm chart deploys. The sandbox runtime isn't a chart workload. It is materialized per sandbox by the Agent Sandbox controller the moment a sandbox is created, which is why a healthy gateway doesn't by itself prove the sandbox path.</p>
 <h2>Containerizing for OpenShift</h2>
-<p>Each component builds from the pinned source in a multi-stage UBI9 image. The builder stage installs the Rust toolchain plus the C and C++ compilers the vendored dependencies need, and the runtime stage is ubi9/ubi-minimal with the binary copied in and the final user set to 1001, which lets OpenShift assign arbitrary UIDs (user identifiers).</p>
+<p>Each component builds from the pinned source in a multi-stage UBI9 image. The builder stage installs the Rust toolchain plus the C and C++ compilers the vendored dependencies need, and the runtime stage is ubi9/ubi-minimal with the binary copied in and the final user set to 1001. Group permissions and SCC-compatible Helm settings allowed OpenShift to assign a namespace UID (user identifier).</p>
 <p>This part took 2 retries, and both were worth writing down:</p>
 <ul><li>UBI9 does not ship a standalone libclang package; it is provided by clang-devel. The first build failed at the package step until we used the right name.</li><li>The gateway vendors z3 and compiles it with CMake. The first working toolchain picked GCC 11, which lacks the C++20 std::format support the code needs. Selecting the newer compiler toolchain fixed the build.</li></ul>
 <h2>Deploying to the cluster</h2>
@@ -143,7 +143,7 @@ graph TD
 <p>We defined 5 scenarios and ran them against the live deployment. Here is the honest result: 3 passed, 1 errored, and 1 was skipped.</p>
 <table><thead><tr><th>Scenario</th><th>Result</th><th>What actually happened</th></tr></thead><tbody><tr><td>gateway-health</td><td>Pass</td><td>HTTP 200, gateway reports healthy</td></tr><tr><td>gateway-metrics</td><td>Pass</td><td>HTTP 200, Prometheus exposition format</td></tr><tr><td>gateway-api</td><td>Pass</td><td>gRPC Health and sandbox listing over mTLS</td></tr><tr><td>sandbox-lifecycle</td><td>Error</td><td>Pod stuck at Init 0/2; 240s wait timed out</td></tr><tr><td>network-policy-enforcement</td><td>Skip</td><td>No ready sandbox to run against</td></tr></tbody></table>
 <p>The 3 passing scenarios are a real result: the health and metrics endpoints answered HTTP (HyperText Transfer Protocol) 200, the control plane answers over mTLS (mutual TLS), and the gRPC API (application programming interface) lists sandboxes. We're comfortable saying the gateway works on OpenShift. If you run agent workloads, that control plane is the part to look at first, and the <a href="https://www.redhat.com/en">AutoPoC project</a> is the fastest way to try it.</p>
-<p>The error is where it gets interesting, and it's not a bug in the software. The sandbox pod's persistent volume was bound, but the volume attachment never completed. The cloud provider's CSI (Container Storage Interface) driver reported an over-quota condition, 12 secondary volumes, on the GPU node, and the pod emitted FailedAttachVolume for the entire 240-second wait. Freeing the gateway's slot alone wasn't enough; the node's other workloads still held all 12 secondary-volume slots. That is a real storage limit on a real node, not a readiness race in the client. Because the sandbox never became ready, the network-policy scenario had nothing to attach to, so we recorded it as a skip rather than pretending it ran.</p>
+<p>The captured sandbox error had direct storage-attachment evidence. The sandbox pod's persistent volume was bound, but the volume attachment never completed. The cloud provider's CSI (Container Storage Interface) driver reported an over-quota condition, 12 secondary volumes, on the GPU node, and the pod emitted FailedAttachVolume for the entire 240-second wait. The captured attempt was blocked by storage attachment; remaining software paths were untested. Because the sandbox never became ready, the network-policy scenario had nothing to attach to, so we recorded it as a skip rather than pretending it ran.</p>
 <div class="mermaid">
 %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#EE0000', 'primaryTextColor': '#fff', 'primaryBorderColor': '#A30000', 'lineColor': '#6A6E73', 'secondaryColor': '#F0F0F0', 'tertiaryColor': '#0066CC'}}}%%
 flowchart TD
@@ -156,8 +156,8 @@ flowchart TD
 <h2>What we learned</h2>
 <p>The control plane is solid on OpenShift, and the deployment story is genuinely first-class: a real Helm chart, the Agent Sandbox controller, and no privileged SCC. That's the part we would take to a team tomorrow.</p>
 <p>The isolation story is where we stopped and looked. We're not claiming the kernel-mediated network and filesystem boundaries are proven, because the sandbox never got far enough to exercise them. A pod that's Ready isn't the same thing as a sandbox that is isolated, and we would rather say that plainly than dress it up.</p>
-<p>We also learned 2 practical lessons. First, UBI packaging has real edges: a missing libclang and a compiler that is too young for C++20 both cost us a build cycle. Second, a proof of concept runs on a real cluster with real quotas, and a 12-volume limit on a GPU node is exactly the kind of thing you only find by trying.</p>
-<p>On the security side, one caveat matters. The gateway requires an mTLS client certificate, but it also promotes a certificate-verified caller to a local-development principal. That's the project's own posture for its OpenShift end-to-end tests, and it's fine for a proof of concept. It isn't the same as production identity, and we didn't test production OIDC (OpenID Connect) here.</p>
+<p>We also learned 2 practical lessons. First, UBI packaging has real edges: a missing libclang and a compiler that is too old for the required C++20 headers both cost us a build cycle. Second, a proof of concept runs on a real cluster with real quotas, and a 12-volume limit on a GPU node is exactly the kind of thing you only find by trying.</p>
+<p>On the security side, one caveat matters. The gateway requires an mTLS client certificate, but it also promotes a certificate-verified caller to a local-development principal. That's the project's own posture for its OpenShift end-to-end tests, which was the configuration used for this PoC. It isn't the same as production identity, and we didn't test production OIDC (OpenID Connect) here.</p>
 <h2>Try it yourself</h2>
 <p>If you run OpenShift AI and you want a hard boundary around your agent workloads, OpenShell is worth a look. The AutoPoC pipeline built the images, deployed the chart, and ran the tests in one pass, and it told us exactly where the platform and the workload met.</p>
 <p>The source, the UBI Dockerfiles, and the Helm values all live in the <a href="https://github.com/aicatalyst-team/openshell/tree/autopoc">openshell autopoc branch</a> if you want to see exactly what was built. Try deploying your own project with AutoPoC, and bring a workload that's a little ambitious. The failures are usually the most useful part.</p></article>

@@ -1,12 +1,12 @@
 ## What is OpenShell?
 
-Autonomous agents run code you did not write, on nodes you share with everything else on the cluster. OpenShell, from NVIDIA, draws a kernel-enforced line around those agents, and this post shows how far that line holds when it meets a real [Red Hat OpenShift AI](https://www.redhat.com/en/technologies/cloud-computing/openshift) cluster.
+Autonomous agents run code you did not write, on nodes you share with everything else on the cluster. OpenShell, from NVIDIA, is designed to isolate those agents. This PoC built its runtime images and tested control-plane access on a [Red Hat OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift) cluster.
 
-It doesn't trust an agent process to behave. Instead it instruments the Linux kernel: Landlock for filesystem policy, nested seccomp user-notification (a trap that hands each syscall to a supervisor for a yes-or-no decision) for syscall and network mediation, and SO_BINDTODEVICE (which pins each socket to a single network device). A Rust gateway fronts the control plane over gRPC (Google Remote Procedure Call), a trusted supervisor mediates each sandbox's traffic, and a workload-side sandbox runtime owns the agent's process tree. Policy changes are checked with z3 formal verification before they take effect.
+It doesn't trust an agent process to behave. Instead it instruments the Linux kernel: Landlock for filesystem policy, nested seccomp user-notification (a mechanism that sends selected system calls to a supervisor for policy decisions) for syscall and network mediation, and SO_BINDTODEVICE (which pins each socket to a single network device). A Rust gateway fronts the control plane over gRPC, a trusted supervisor mediates each sandbox's traffic, and a workload-side sandbox runtime owns the agent's process tree. The project includes z3-based policy verification; this PoC did not test that mechanism.
 
 The short version: it's a hard boundary you can put around an agent, and it ships with its own Helm chart for Kubernetes. If you want the full platform context, the [OpenShift AI documentation](https://docs.redhat.com/) is a good place to start.
 
-## Why it matters for Red Hat OpenShift AI
+## Why it matters for Red Hat OpenShift
 
 OpenShift AI is where autonomous agent workloads increasingly run, and those workloads need a boundary that respects the platform rather than fighting it. OpenShell deploys through the Agent Sandbox controller and a standard Helm chart, targets the restricted-v2 SCC (Security Context Constraint), and needs no privileged SCC. That makes it a natural fit alongside the rest of an OpenShift AI estate: the agents stay contained, and the platform keeps its usual RBAC (role-based access control) and SCC story.
 
@@ -32,7 +32,7 @@ One distinction matters for what comes next: the gateway and the supervisor are 
 
 ## Containerizing for OpenShift
 
-Each component builds from the pinned source in a multi-stage UBI9 image. The builder stage installs the Rust toolchain plus the C and C++ compilers the vendored dependencies need, and the runtime stage is ubi9/ubi-minimal with the binary copied in and the final user set to 1001, which lets OpenShift assign arbitrary UIDs (user identifiers).
+Each component builds from the pinned source in a multi-stage UBI9 image. The builder stage installs the Rust toolchain plus the C and C++ compilers the vendored dependencies need, and the runtime stage is ubi9/ubi-minimal with the binary copied in and the final user set to 1001. Group permissions and SCC-compatible Helm settings allowed OpenShift to assign a namespace UID (user identifier).
 
 This part took 2 retries, and both were worth writing down:
 
@@ -78,7 +78,7 @@ We defined 5 scenarios and ran them against the live deployment. Here is the hon
 
 The 3 passing scenarios are a real result: the health and metrics endpoints answered HTTP (HyperText Transfer Protocol) 200, the control plane answers over mTLS (mutual TLS), and the gRPC API (application programming interface) lists sandboxes. We're comfortable saying the gateway works on OpenShift. If you run agent workloads, that control plane is the part to look at first, and the [AutoPoC project](https://www.redhat.com/en) is the fastest way to try it.
 
-The error is where it gets interesting, and it's not a bug in the software. The sandbox pod's persistent volume was bound, but the volume attachment never completed. The cloud provider's CSI (Container Storage Interface) driver reported an over-quota condition, 12 secondary volumes, on the GPU node, and the pod emitted FailedAttachVolume for the entire 240-second wait. Freeing the gateway's slot alone wasn't enough; the node's other workloads still held all 12 secondary-volume slots. That is a real storage limit on a real node, not a readiness race in the client. Because the sandbox never became ready, the network-policy scenario had nothing to attach to, so we recorded it as a skip rather than pretending it ran.
+The captured sandbox error had direct storage-attachment evidence. The sandbox pod's persistent volume was bound, but the volume attachment never completed. The cloud provider's CSI (Container Storage Interface) driver reported an over-quota condition, 12 secondary volumes, on the GPU node, and the pod emitted FailedAttachVolume for the entire 240-second wait. The captured attempt was blocked by storage attachment; remaining software paths were untested. Because the sandbox never became ready, the network-policy scenario had nothing to attach to, so we recorded it as a skip rather than pretending it ran.
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#EE0000', 'primaryTextColor': '#fff', 'primaryBorderColor': '#A30000', 'lineColor': '#6A6E73', 'secondaryColor': '#F0F0F0', 'tertiaryColor': '#0066CC'}}}%%
@@ -97,9 +97,9 @@ The control plane is solid on OpenShift, and the deployment story is genuinely f
 
 The isolation story is where we stopped and looked. We're not claiming the kernel-mediated network and filesystem boundaries are proven, because the sandbox never got far enough to exercise them. A pod that's Ready isn't the same thing as a sandbox that is isolated, and we would rather say that plainly than dress it up.
 
-We also learned 2 practical lessons. First, UBI packaging has real edges: a missing libclang and a compiler that is too young for C++20 both cost us a build cycle. Second, a proof of concept runs on a real cluster with real quotas, and a 12-volume limit on a GPU node is exactly the kind of thing you only find by trying.
+We also learned 2 practical lessons. First, UBI packaging has real edges: a missing libclang and a compiler that is too old for the required C++20 headers both cost us a build cycle. Second, a proof of concept runs on a real cluster with real quotas, and a 12-volume limit on a GPU node is exactly the kind of thing you only find by trying.
 
-On the security side, one caveat matters. The gateway requires an mTLS client certificate, but it also promotes a certificate-verified caller to a local-development principal. That's the project's own posture for its OpenShift end-to-end tests, and it's fine for a proof of concept. It isn't the same as production identity, and we didn't test production OIDC (OpenID Connect) here.
+On the security side, one caveat matters. The gateway requires an mTLS client certificate, but it also promotes a certificate-verified caller to a local-development principal. That's the project's own posture for its OpenShift end-to-end tests, which was the configuration used for this PoC. It isn't the same as production identity, and we didn't test production OIDC (OpenID Connect) here.
 
 ## Try it yourself
 
