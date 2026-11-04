@@ -184,15 +184,20 @@ def scenario_sandbox_lifecycle():
     from openshell._proto import openshell_pb2
 
     start = time.monotonic()
+    client = None
+    created = False
+    succeeded = False
     try:
         client = make_client()
         spec = build_spec()
         session = client.create_session(
             workspace=WORKSPACE, spec=spec, name=SANDBOX_NAME
         )
-        ref = client.wait_ready(
-            session.sandbox.name, workspace=WORKSPACE, timeout_seconds=240
-        )
+        created = True
+        # The controller materializes the CR as "<workspace>--<name>" and the
+        # Pod under that same name; the SDK returns the actual name.
+        cr_name = session.sandbox.name
+        ref = client.wait_ready(cr_name, workspace=WORKSPACE, timeout_seconds=240)
         exec_result = session.exec(
             ["sh", "-c", "echo openshell-poc-marker"], timeout_seconds=60
         )
@@ -201,40 +206,38 @@ def scenario_sandbox_lifecycle():
                 f"marker exec failed rc={exec_result.exit_code} "
                 f"out={exec_result.stdout!r} err={exec_result.stderr!r}"
             )
-        # Verify the Agent Sandbox CR and its pod in the namespace.
-        code, cr_out, cr_err = kubectl("get", "sandbox", SANDBOX_NAME, "-o", "json")
+        # Verify the Agent Sandbox CR and its pod in the namespace. The CR is
+        # named "<workspace>--<name>"; the Pod carries the CR's status.selector
+        # (agents.x-k8s.io/sandbox-name-hash) and is named identically to the CR.
+        code, cr_out, cr_err = kubectl("get", "sandbox", cr_name, "-o", "json")
         if code != 0:
-            raise RuntimeError(f"Sandbox CR not found: {cr_err}")
+            raise RuntimeError(f"Sandbox CR {cr_name} not found: {cr_err}")
         cr = json.loads(cr_out)
-        code, pod_out, pod_err = kubectl(
-            "get",
-            "pods",
-            "-l",
-            f"openshell.ai/sandbox={SANDBOX_NAME}",
-            "-o",
-            "json",
-        )
-        if code != 0 or not pod_out:
-            # Fall back to listing managed pods and matching by name prefix.
+        selector = cr.get("status", {}).get("selector") or ""
+        if selector:
             code, pod_out, pod_err = kubectl(
-                "get", "pods", "-l", "openshell.ai/managed-by=openshell", "-o", "json"
+                "get", "pods", "-l", selector, "-o", "json"
             )
-        pods = json.loads(pod_out or "{}").get("items", [])
-        match = [
-            p
-            for p in pods
-            if SANDBOX_NAME in p["metadata"].get("name", "")
-        ]
+            pods = json.loads(pod_out or "{}").get("items", [])
+        else:
+            pods = []
+        match = [p for p in pods if p["metadata"].get("name") == cr_name]
+        if not match:
+            # Fallback: the Pod is named identically to the CR.
+            code2, pod_out2, _ = kubectl("get", "pod", cr_name, "-o", "json")
+            if code2 == 0 and pod_out2:
+                match = [json.loads(pod_out2)]
         if not match:
             raise RuntimeError(
-                f"no pod found for sandbox {SANDBOX_NAME} "
-                f"(managed pods: {len(pods)})"
+                f"no pod found for sandbox {cr_name} "
+                f"(selector={selector!r}, matched={len(pods)})"
             )
         containers = [c["name"] for c in match[0]["spec"]["containers"]]
         if not any("sandbox" in c.lower() or "runtime" in c.lower() for c in containers):
             raise RuntimeError(f"no sandbox-runtime container in pod: {containers}")
         sandbox_state["session"] = session
         sandbox_state["client"] = client
+        succeeded = True
         recorder.record(
             "sandbox-lifecycle",
             "exec",
@@ -246,7 +249,7 @@ def scenario_sandbox_lifecycle():
             "scenario_name": "sandbox-lifecycle",
             "status": "pass",
             "output": (
-                f"sandbox {ref.name} ready; marker exec ok; "
+                f"sandbox {cr_name} ready; marker exec ok; "
                 f"CR present; pod containers: {containers}"
             ),
         }
@@ -263,6 +266,25 @@ def scenario_sandbox_lifecycle():
             "status": "error",
             "output": sanitize_error(err),
         }
+    finally:
+        # On success the network scenario owns (and tears down) the sandbox;
+        # otherwise clean it up here so a failed lifecycle does not leak one.
+        if created and not succeeded:
+            try:
+                if client is not None:
+                    client.delete(
+                        SANDBOX_NAME, workspace=WORKSPACE, allow_missing=True
+                    )
+                    client.wait_deleted(
+                        SANDBOX_NAME, workspace=WORKSPACE, timeout_seconds=120
+                    )
+                else:
+                    kubectl(
+                        "delete", "sandbox", f"{WORKSPACE}--{SANDBOX_NAME}",
+                        "--ignore-not-found=true",
+                    )
+            except Exception:
+                pass
 
 
 def sandbox_exec(session, command, timeout_seconds=60):
