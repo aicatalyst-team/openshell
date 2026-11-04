@@ -1,0 +1,88 @@
+# AutoPoC Helm values overlay for OpenShell
+# Run: a189bdf54ac849778a8ed7b228db599f (source pinned at f4a6137)
+#
+# Deploy:
+#   helm install openshell deploy/helm/openshell \
+#     -n poc-openshell -f kubernetes/helm-values.yaml
+
+# Source-built images from this PoC (pinned commit f4a6137).
+global:
+  image:
+    registry: quay.io/aicatalyst
+    tag: f4a6137
+    pullPolicy: Always
+
+gateway:
+  image:
+    repository: openshell-gateway
+
+# Trusted workload-side runtime image used by the Agent Sandbox controller.
+sandboxRuntime:
+  image:
+    repository: openshell-sandbox
+
+# Trusted control-side runtime: shared supervisor pool (Deployment).
+supervisor:
+  image:
+    repository: openshell-supervisor
+  replicas: 1
+  podSecurityContext:
+    runAsUser: null
+    runAsGroup: null
+    fsGroup: null
+
+# Preinstalled gateway ServiceAccount; the cluster-scoped binding
+# (ClusterRole autopoc-openshell-runtime -> SA openshell / poc-openshell)
+# was applied out of band, so the chart must not create cluster-scoped RBAC.
+serviceAccount:
+  create: false
+  name: openshell
+
+rbac:
+  create: true
+  clusterScoped:
+    create: false
+
+# OpenShift restricted-v2 compatibility: let the SCC assign UID/GID/fsGroup
+# from the namespace range instead of using hardcoded IDs.
+podSecurityContext: null
+securityContext:
+  runAsNonRoot: true
+  runAsUser: null
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Shared supervisor pool topology (trusted supervisor as a Deployment that
+# sandboxes connect to); workspace mode stays shared (sandboxes live in the
+# release namespace). The mTLS client certificate remains the access gate;
+# the cert-verified caller is promoted to the local-dev principal, matching
+# the project's own OpenShift e2e posture.
+gatewayConfig:
+  openshell.gateway.auth:
+    allow_unauthenticated_users: true
+  openshell.drivers.kubernetes:
+    supervisor_topology: gateway
+    sandbox_runtime_image_pull_policy: always
+    supervisor_image_pull_policy: always
+
+server:
+  telemetryEnabled: false
+  dataStorageSize: "1Gi"
+  dataStorageClass: ibmc-vpc-block-10iops-tier
+  workspaceDefaultStorageSize: "2Gi"
+  workspaceStorageClass: ibmc-vpc-block-10iops-tier
+
+# Add the in-cluster FQDNs to the server certificate SANs so
+# openshell.poc-openshell.svc[.cluster.local] validates over mTLS.
+pkiInitJob:
+  enabled: true
+  serverDnsNames:
+    - openshell.poc-openshell.svc
+    - openshell.poc-openshell.svc.cluster.local
+
+# Fail the install early if the Agent Sandbox API is not served.
+agentSandbox:
+  preflight:
+    enabled: true
