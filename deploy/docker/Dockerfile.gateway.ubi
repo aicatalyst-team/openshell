@@ -23,7 +23,7 @@ RUN dnf install -y \
         ca-certificates \
         curl-minimal \
         gcc gcc-c++ make cmake pkg-config \
-        clang clang-devel libclang \
+        clang clang-devel \
         openssl-devel \
         perl-core \
     && dnf clean all \

@@ -6,26 +6,33 @@
 # toolchain (musl-gcc) provides the C compiler for aws-lc-sys.
 #
 # Builder stage: UBI9 with the Rust 1.95.0 toolchain (rustup) plus the native
-# toolchain required by the workspace.
+# toolchain required by the workspace. UBI9 ships no musl packages, so the
+# static musl target uses the self-contained musl.cc cross toolchain
+# (a complete x86_64-linux-musl GCC with the musl C library and headers).
 
 FROM registry.access.redhat.com/ubi9/ubi AS builder
 
 ENV CARGO_HOME=/usr/local/cargo \
     RUSTUP_HOME=/usr/local/rustup \
     PATH=/usr/local/cargo/bin:$PATH \
-    CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=musl-gcc
+    CC=x86_64-linux-musl-gcc \
+    CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=x86_64-linux-musl-gcc
 
 USER 0
 RUN dnf install -y \
         ca-certificates \
         curl-minimal \
         gcc gcc-c++ make cmake pkg-config \
-        clang clang-devel libclang \
-        musl-gcc \
+        clang clang-devel \
         openssl-devel \
         perl-core \
     && dnf clean all \
     && rm -rf /var/cache/dnf
+
+RUN curl -fsSL https://musl.cc/x86_64-linux-musl-cross.tgz -o /tmp/musl-cross.tgz \
+    && tar xzf /tmp/musl-cross.tgz -C /opt \
+    && ln -sf /opt/x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc /usr/local/bin/x86_64-linux-musl-gcc \
+    && rm -f /tmp/musl-cross.tgz
 
 RUN curl -fsSL https://sh.rustup.rs -o /tmp/rustup-init.sh \
     && . /tmp/rustup-init.sh -y --profile minimal --default-toolchain 1.95.0 \
