@@ -14,15 +14,23 @@ OpenShift/Kubernetes path — into the `poc-openshell` namespace.
   `autopoc-test/autopoc-runner` (validation runner: sandboxes, networkpolicies,
   events, pods/exec, pods/portforward, secrets)
 
-## Values notes (PoC-specific overrides)
+## Operator-assisted recovery
 
-- `supervisor.podDisruptionBudget.enabled=false` — the worker identity
-  (`autopoc-test/autopoc-runner`, via the `autopoc-runner` ClusterRole) can manage
-  every workload the chart creates except `policy/poddisruptionbudgets`, and it
-  cannot self-escalate (no `escalate` verb on roles/rolebindings). The shared
-  supervisor runs as a single replica in this PoC, so the `maxUnavailable=1` PDB
-  is a no-op; disabling it lets `helm install` succeed. Re-enable it for a
-  production install whose managing identity can manage PDBs.
+- The first Helm install lacked `policy/poddisruptionbudgets` permission.
+  An operator applied the namespace-only Role/RoleBinding
+  `autopoc-openshell-helm` for `autopoc-test/autopoc-runner`. Kubernetes
+  escalation checks cannot be bypassed by applying a RoleBinding before a
+  Role. The worker temporarily disabled the one-replica PDB; the final values
+  restore the chart's PDB now that the required permission exists.
+- IBM CSI rejected the gateway volume attachment on GPU node
+  `ocp-gb-xz56l-gpu-l40s-vzwxt`: `over_quota`, maximum 12 secondary volumes.
+  The operator rescheduled only the not-yet-started gateway Pod onto
+  `ocp-gb-xz56l-worker-1-hhkzb`, which has capacity in the PVC's `eu-gb-1`
+  zone. The final `nodeSelector` preserves that placement. No volume data or
+  unrelated workloads were deleted, and no privileged SCC was granted.
+- This node name is specific to this PoC cluster. On another cluster, select a
+  node with available disk attachments in the volume's zone, or omit the
+  selector after verifying scheduling/storage capacity.
 
 ## Apply order
 
