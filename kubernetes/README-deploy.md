@@ -14,6 +14,16 @@ OpenShift/Kubernetes path — into the `poc-openshell` namespace.
   `autopoc-test/autopoc-runner` (validation runner: sandboxes, networkpolicies,
   events, pods/exec, pods/portforward, secrets)
 
+## Values notes (PoC-specific overrides)
+
+- `supervisor.podDisruptionBudget.enabled=false` — the worker identity
+  (`autopoc-test/autopoc-runner`, via the `autopoc-runner` ClusterRole) can manage
+  every workload the chart creates except `policy/poddisruptionbudgets`, and it
+  cannot self-escalate (no `escalate` verb on roles/rolebindings). The shared
+  supervisor runs as a single replica in this PoC, so the `maxUnavailable=1` PDB
+  is a no-op; disabling it lets `helm install` succeed. Re-enable it for a
+  production install whose managing identity can manage PDBs.
+
 ## Apply order
 
 1. `kubectl apply -f kubernetes/namespace.yaml` (idempotent; namespace exists)

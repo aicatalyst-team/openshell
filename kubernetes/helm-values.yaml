@@ -30,6 +30,14 @@ supervisor:
     runAsUser: null
     runAsGroup: null
     fsGroup: null
+  # The AutoPoC worker identity (autopoc-test/autopoc-runner) holds broad
+  # namespace grants but not policy/poddisruptionbudgets, and cannot self-escalate
+  # (no `escalate` verb on roles/rolebindings). The shared supervisor runs as a
+  # single replica in this PoC, so the maxUnavailable=1 PDB is a no-op; disabling
+  # it lets Helm install without the missing PDB permissions. Re-enable it in a
+  # production install whose managing identity can manage PDBs.
+  podDisruptionBudget:
+    enabled: false
 
 # Preinstalled gateway ServiceAccount; the cluster-scoped binding
 # (ClusterRole autopoc-openshell-runtime -> SA openshell / poc-openshell)
