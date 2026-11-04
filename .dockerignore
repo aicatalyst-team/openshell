@@ -41,3 +41,19 @@ kubeconfig
 
 # Node
 **/node_modules
+
+# AutoPoC: keep the UBI build context small (the Rust build only needs
+# Cargo.*, .cargo/, crates/, proto/, and deploy/docker/)
+docs/
+fern/
+nix/
+sdk/
+e2e/
+tests/
+examples/
+rfc/
+skills/
+python/
+tasks/
+scripts/
+snap/
