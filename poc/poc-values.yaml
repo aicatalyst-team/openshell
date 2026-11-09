@@ -1,0 +1,84 @@
+# OpenShell PoC values — release "openshell" in namespace poc-openshell-kokoro-20261109
+# Layered AFTER ci/values-openshift-scc.yaml (restricted-v2) on top of values.yaml.
+# Layered with: helm install openshell deploy/helm/openshell -f ci/values-openshift-scc.yaml -f poc/poc-values.yaml
+
+nameOverride: openshell
+
+global:
+  image:
+    registry: quay.io/aicatalyst
+    tag: kokoro-90b344e8
+    pullPolicy: Always
+
+# Gateway (StatefulSet, SQLite-backed) — built from pinned source.
+gateway:
+  image:
+    registry: quay.io/aicatalyst
+    repository: openshell-gateway
+    tag: kokoro-90b344e8
+    pullPolicy: Always
+
+# Shared supervisor pool (Deployment + PDB) — built from pinned source.
+supervisor:
+  image:
+    registry: quay.io/aicatalyst
+    repository: openshell-supervisor
+    tag: kokoro-90b344e8
+    pullPolicy: Always
+  replicas: 1
+  podDisruptionBudget:
+    enabled: true
+
+# Sandbox runtime image (openshell-sandbox binary) — built from pinned source.
+sandboxRuntime:
+  image:
+    registry: quay.io/aicatalyst
+    repository: openshell-sandbox
+    tag: kokoro-90b344e8
+    pullPolicy: Always
+
+# Workload base image (the agent's environment; not one of our built images).
+sandbox:
+  image:
+    repository: nvcr.io/nvidia/base/ubuntu
+    tag: "24.04"
+
+# Preinstalled application ServiceAccount (operator-provided).
+serviceAccount:
+  create: false
+  name: openshell
+
+# Cluster-scoped node-reader ClusterRole/Binding already provided by the operator.
+rbac:
+  create: true
+  clusterScoped:
+    create: false
+
+# Mandatory node placement for the gateway PVC consumer.
+nodeSelector:
+  kubernetes.io/hostname: ocp-gb-xz56l-worker-2-nsrd9
+
+# Bounded gateway resources.
+resources:
+  requests:
+    cpu: "2"
+    memory: 4Gi
+  limits:
+    cpu: "4"
+    memory: 16Gi
+
+# Block-backed storage on the required StorageClass.
+server:
+  dataStorageClass: ibmc-vpc-block-10iops-tier
+  dataStorageSize: 1Gi
+  workspaceStorageClass: ibmc-vpc-block-10iops-tier
+  workspaceDefaultStorageSize: 2Gi
+
+# Gateway application config: shared supervisor pool + allow per-sandbox driver
+# config so the test can place each sandbox Pod via driver_config.kubernetes.pod.node_selector.
+gatewayConfig:
+  openshell:
+    version: 2
+  openshell.drivers.kubernetes:
+    supervisor_topology: gateway
+    allow_driver_config: true
