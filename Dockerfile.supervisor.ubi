@@ -1,0 +1,52 @@
+# AutoPoC UBI build for the OpenShell supervisor, compiled from the pinned source.
+#
+# Replicates the upstream release build: x86_64-unknown-linux-gnu target with
+# the default feature set (telemetry + bundled CA roots; the bundled roots are
+# required for the supervisor's TLS mediation).
+#
+# Builder stage: UBI9 with the Rust 1.95.0 toolchain (rustup) and the native
+# toolchain required by the workspace (aws-lc-sys needs cmake + a C compiler;
+# bindgen needs libclang).
+
+FROM registry.access.redhat.com/ubi9/ubi AS builder
+
+ENV CARGO_HOME=/usr/local/cargo \
+    RUSTUP_HOME=/usr/local/rustup \
+    PATH=/usr/local/cargo/bin:$PATH
+
+USER 0
+RUN dnf install -y \
+        ca-certificates \
+        curl-minimal \
+        gcc gcc-c++ make cmake pkg-config \
+        clang clang-devel \
+        openssl-devel \
+        perl-core \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+RUN curl -fsSL https://sh.rustup.rs -o /tmp/rustup-init.sh \
+    && . /tmp/rustup-init.sh -y --profile minimal --default-toolchain 1.95.0 \
+    && rm -f /tmp/rustup-init.sh
+
+WORKDIR /opt/app-root/src
+COPY . .
+
+RUN cargo build --release --locked \
+        --target x86_64-unknown-linux-gnu \
+        -p openshell-supervisor --bin openshell-supervisor
+
+# Runtime stage: minimal UBI9 (glibc present for the GNU-linked binary).
+FROM registry.access.redhat.com/ubi9/ubi-minimal
+
+COPY --from=builder /opt/app-root/src/target/x86_64-unknown-linux-gnu/release/openshell-supervisor /openshell-supervisor
+
+RUN chgrp -R 0 /openshell-supervisor && chmod -R g=u /openshell-supervisor
+
+# Workload boundary listener port used by sandbox workloads to reach the
+# shared supervisor pool.
+EXPOSE 5500
+
+USER 1001
+
+ENTRYPOINT ["/openshell-supervisor"]
