@@ -1,0 +1,83 @@
+serviceAccount:
+  create: false
+  name: openshell
+rbac:
+  clusterScoped:
+    create: false
+podLabels:
+  autopoc-run: c00040c2196d4919b3e5b0a7fd947faf
+nodeSelector:
+  kubernetes.io/hostname: ocp-gb-xz56l-worker-3-cpu-f88sc
+podSecurityContext: null
+securityContext:
+  runAsNonRoot: true
+  runAsUser: null
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  seccompProfile:
+    type: RuntimeDefault
+gateway:
+  image:
+    registry: quay.io
+    repository: aicatalyst/openshell-gateway
+    digest: sha256:dcda18953431340ab766bc71ad3bed03ec53752cf7ab7167edc949b20575ce15
+supervisor:
+  image:
+    registry: quay.io
+    repository: aicatalyst/openshell-supervisor
+    digest: sha256:eb2ae68363c52bf848f866d025826466eee91d019cafd371957fa362615e8199
+  replicas: 1
+  podDisruptionBudget:
+    enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: null
+    runAsGroup: null
+    fsGroup: null
+sandboxRuntime:
+  image:
+    registry: quay.io
+    repository: aicatalyst/openshell-sandbox
+    digest: sha256:7a92fe2873dd0cb8a72b7e668c34aa55cc6e77057f731e2e56c98757b8cc6490
+sandbox:
+  image:
+    repository: quay.io/aicatalyst/openshell-sandbox
+    digest: sha256:7a92fe2873dd0cb8a72b7e668c34aa55cc6e77057f731e2e56c98757b8cc6490
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: '2'
+    memory: 2Gi
+gatewayConfig:
+  openshell:
+    version: 2
+  openshell.gateway:
+    compute_driver: kubernetes
+  openshell.gateway.mtls_auth:
+    enabled: true
+  openshell.drivers.kubernetes:
+    workspace_mode: shared
+    allow_driver_config: true
+    supervisor_topology: gateway
+server:
+  telemetryEnabled: false
+  dataStorageSize: 10Gi
+  dataStorageClass: ibmc-vpc-block-10iops-tier
+  workspaceDefaultStorageSize: 10Gi
+  workspaceStorageClass: ibmc-vpc-block-10iops-tier
+  sandboxUid: ''
+  sandboxGid: ''
+  disableTls: false
+  auth:
+    allowUnauthenticatedUsers: false
+  tls:
+    enableMtls: true
+pkiInitJob:
+  serverDnsNames:
+  - openshell.poc-openshell-story-c00040c2.svc.cluster.local
+networkPolicy:
+  enabled: true
