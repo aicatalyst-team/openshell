@@ -1,0 +1,13 @@
+{
+  "approved": true,
+  "findings": [],
+  "observations": [
+    "All 101 evidence selectors resolve against the published bundle. The bundled index and report match the supplied verified-index.json and report.md.",
+    "The five original scenarios appear exactly once, with source-backed purposes and correctly ordered, contiguous, nonoverlapping speech indices. Outcomes remain 1 pass, 0 fail, 1 error, 3 skip and 0 incomplete. Later diagnostics are not presented as additional scenarios or a validation rerun.",
+    "The story separates intended capabilities, observed results, evidence limits and recommendations. It preserves missing_trace, the unknown attachment root cause, the distinction between readiness and attachment, and the distinction between gateway storage and an unvalidated sandbox workspace. It does not infer a product defect or platform incompatibility.",
+    "Tool counts confirm nine slides and 596 narration words. Titles contain 26\u201355 characters; ledger claims contain at most 170 characters. Slides contain 5\u20138 narration sentences and 46\u201389 words, with no sentence exceeding 17 whitespace-delimited words. The narration is intelligible, contains no execution date or misleading media-production claims, and begins the recommendation with an action.",
+    "The image manifest supplies attribution, a pinned source URL and matching revision, contextual caption and alt text, and a disclosed capture-time gap. Its use is explicitly source context, not runtime proof. Image-byte metadata and integrity checks passed, but no image pixels were visually inspected.",
+    "Scene IDs and ordering match the narrative. Rendering, measured speech duration, final visual acceptance and human full listening remain separate gates. Renderer model and lexicon identities were not independently attested by this content review."
+  ],
+  "review_scope": "Independent semantic and structural review of /inputs/narrative.json, scenes.json, visuals.zip/manifest.json, verified-index.json, report.md and relevant evidence.zip members against review-guidance.md. Reviewed every ledger claim, title, visible bullet, narration sentence, graph element, scenario mapping and material omission. The archived original-narrative.json was not the review target. Reads were confined to supplied /inputs artifacts; no environment variables or credential contents were inspected. No files were edited, tests replayed, traces invented or approval hashes authored. Visual-content review was manifest/text only."
+}

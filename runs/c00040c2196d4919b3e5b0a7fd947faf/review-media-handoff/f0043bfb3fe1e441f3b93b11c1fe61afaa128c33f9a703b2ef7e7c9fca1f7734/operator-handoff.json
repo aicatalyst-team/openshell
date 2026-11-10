@@ -1,0 +1,74 @@
+{
+  "run_id": "c00040c2196d4919b3e5b0a7fd947faf",
+  "status": "generated_local_review_ready",
+  "poc_outcome": {
+    "pass": 1,
+    "fail": 0,
+    "error": 1,
+    "skip": 3,
+    "incomplete": 0
+  },
+  "poc_lifecycle_objective": "not_achieved_supervisor_attachment_unresolved",
+  "input_sha256": "13fd83db040ba122723f808b36ab8b2fcd277dc6a22362215d3905180d60ac85",
+  "renderer_image": "quay.io/aicatalyst/autopoc-executive-renderer@sha256:51de7478b7b67667cf1ecc165f4b585ee96ee7947b9c126a7ca694544f987711",
+  "artifacts": {
+    "deck": {
+      "path": "static-site.zip",
+      "sha256": "f4e08ef8d2a5719b7af2964f07fdfa735444b33262959f1252e8702eb074b746",
+      "size": 968874,
+      "status": "generated_unpublished"
+    },
+    "pdf": {
+      "path": "executive-summary.pdf",
+      "sha256": "f5c2ae1981f5cf560cfa4899bef8b1d06faa05add0af64dc429d08642cee285d",
+      "size": 196777,
+      "status": "generated_unpublished"
+    },
+    "source": {
+      "path": "executable-source.zip",
+      "sha256": "d114e73dd1f458df8c45fd96a4ab223aaf0b4468f3e76040efc86017f59860a1",
+      "size": 20385334,
+      "status": "generated_unpublished"
+    },
+    "summary": {
+      "path": "executive-summary.md",
+      "sha256": "4e77e7270794aa1cafed4e395ea01c7795e8b3470cc9a34dda7b63cfe9bb5195",
+      "size": 5783,
+      "status": "generated_unpublished"
+    },
+    "video": {
+      "path": "executive-summary.mp4",
+      "sha256": "c37c180b1c7a55a3d720137672f2f08d6103d7024a02981a9b5b687056c1c993",
+      "size": 6558992,
+      "status": "generated_unpublished"
+    }
+  },
+  "video": {
+    "duration_seconds": 296.3333333333333,
+    "frames": 8890,
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "audio": "AAC24kHzmono",
+    "captions": "embedded_sentence_level_mov_text",
+    "slate_frames_detected": 0
+  },
+  "independent_verification": {
+    "all_artifact_hashes": true,
+    "byte_exact_reviewed_transcript": true,
+    "sentence_and_scene_wav_hashes": true,
+    "embedded_captions_text_and_timestamps": true,
+    "full_media_decode": true,
+    "all_five_check_cues_within_frames": 2,
+    "scene_frames_inspected": 27,
+    "check_boundary_frames_inspected": 15,
+    "actual_3d_poses_inspected": 3,
+    "pdf_pages_inspected": 9,
+    "final_pdf_pixels_match_inspected_pages": true,
+    "offline_nonroot_source_rebuild": true
+  },
+  "operator_assistance": "External provider configuration, prepared isolated prerequisites, content revision/review coordination, one-off sealed-input PVC transfer, artifact retrieval and media QA. This is not acceptance of production Drive dispatch/reconcile.",
+  "human_full_listening": "pending",
+  "drive_publication": "not_performed_not_authorized",
+  "shared_live_activation": false
+}
