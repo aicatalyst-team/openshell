@@ -1,0 +1,15 @@
+# Adapted from the operator's same-revision reference Dockerfile.
+FROM registry.access.redhat.com/ubi9/ubi AS builder
+ENV CARGO_HOME=/usr/local/cargo RUSTUP_HOME=/usr/local/rustup PATH=/usr/local/cargo/bin:$PATH
+USER 0
+RUN dnf install -y ca-certificates curl-minimal gcc gcc-c++ make cmake pkg-config clang clang-devel openssl-devel perl-core && dnf clean all && rm -rf /var/cache/dnf
+RUN curl -fsSL https://sh.rustup.rs -o /tmp/rustup-init.sh && . /tmp/rustup-init.sh -y --profile minimal --default-toolchain 1.95.0 && rm -f /tmp/rustup-init.sh
+WORKDIR /opt/app-root/src
+COPY . .
+RUN cargo build --release --locked --target x86_64-unknown-linux-gnu -p openshell-supervisor --bin openshell-supervisor
+FROM registry.access.redhat.com/ubi9/ubi-minimal
+COPY --from=builder /opt/app-root/src/target/x86_64-unknown-linux-gnu/release/openshell-supervisor /openshell-supervisor
+RUN mkdir -p /opt/app-root && chgrp -R 0 /opt/app-root /openshell-supervisor && chmod -R g=u /opt/app-root /openshell-supervisor
+EXPOSE 5500
+USER 1001
+ENTRYPOINT ["/openshell-supervisor"]
