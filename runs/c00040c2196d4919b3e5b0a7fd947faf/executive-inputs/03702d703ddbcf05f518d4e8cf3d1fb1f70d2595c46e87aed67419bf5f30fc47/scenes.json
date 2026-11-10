@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "slide_ids": [
+    "objective",
+    "testing-access-process",
+    "testing-dependent-checks",
+    "setup-topology",
+    "setup-build-scope",
+    "execution-attachment",
+    "results",
+    "limitations",
+    "recommendation"
+  ],
+  "narration": {
+    "engine": "kokoro",
+    "voice": "af_heart",
+    "speed": 0.95,
+    "model_manifest_sha256": "cc53829edc24d67ed317946d25867ec1236909f374f4a33c5a22355c69f00c24",
+    "lexicon_sha256": "32f4a336d574f1a517471a4df63722c38bf1ec180fc449ce1ea453357fc671a5"
+  },
+  "timing_policy": {
+    "lead_seconds": 0.35,
+    "tail_seconds": 0.65,
+    "min_scene_seconds": 6,
+    "sentence_gap_seconds": 0.20,
+    "max_scene_seconds": 120,
+    "max_total_seconds": 900,
+    "max_scenes": 30
+  }
+}

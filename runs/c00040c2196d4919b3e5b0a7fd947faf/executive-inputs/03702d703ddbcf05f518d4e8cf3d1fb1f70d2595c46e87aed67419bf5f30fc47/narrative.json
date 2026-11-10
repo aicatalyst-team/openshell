@@ -1,0 +1,488 @@
+{
+  "schema_version": 3,
+  "run_id": "c00040c2196d4919b3e5b0a7fd947faf",
+  "project_name": "OpenShell",
+  "project_context": {
+    "repository_url": "https://github.com/NVIDIA/OpenShell",
+    "revision": "f4a6137513b777c9b362be54baf388f7d45398aa",
+    "definition_claim_id": "project-definition",
+    "homepage_url": null,
+    "documentation_url": null
+  },
+  "results": {"pass": 1, "fail": 0, "error": 1, "skip": 3, "incomplete": 0},
+  "claims": [
+    {
+      "id": "project-definition",
+      "text": "OpenShell is intended as a policy-controlled runtime for autonomous AI agents; this PoC did not validate its security boundaries.",
+      "kind": "planned",
+      "sources": ["supplemental/source-analysis.txt#L7-L16", "report.md#L33-L33"]
+    },
+    {
+      "id": "source-intent",
+      "text": "The pinned README describes file, system-call and network controls plus formal policy verification as intended capabilities, not observed results.",
+      "kind": "planned",
+      "sources": ["supplemental/source-analysis.txt#L7-L16"]
+    },
+    {
+      "id": "objective",
+      "text": "PoC question: can fresh UBI source builds run under OpenShift restricted-v2 and provide a usable sandbox lifecycle through the pinned SDK?",
+      "kind": "planned",
+      "sources": ["plan.md#L6-L13"]
+    },
+    {
+      "id": "source-image",
+      "text": "The operator-supplied pinned README capture shows source context, not runtime behavior.",
+      "kind": "observed",
+      "sources": ["report.md#L39-L45"]
+    },
+    {
+      "id": "recorded-accounting",
+      "text": "Five original terminal checks were recorded once; this account does not replay tests.",
+      "kind": "observed",
+      "sources": ["test-results.json#/complete", "test-results.json#/results", "report.md#L15-L18", "report.md#L217-L217"]
+    },
+    {
+      "id": "access-label",
+      "text": "Gateway readiness and mTLS access",
+      "kind": "planned",
+      "sources": ["test-results.json#/results/0/scenario_name", "plan.md#L18-L18"]
+    },
+    {
+      "id": "access-purpose",
+      "text": "Observe ready workloads; require certificate-authenticated API success and rejection without a client certificate.",
+      "kind": "planned",
+      "sources": ["plan.md#L18-L18", "supplemental/test-sdk.txt#L117-L142"]
+    },
+    {
+      "id": "access-outcome",
+      "text": "PASS: ready workloads; authenticated Health and ListSandboxes succeeded; ListSandboxes without a client certificate returned UNAUTHENTICATED.",
+      "kind": "observed",
+      "sources": ["test-results.json#/results/0", "supplemental/test-observations.txt#L1-L1", "report.md#L138-L138"]
+    },
+    {
+      "id": "process-label",
+      "text": "Sandbox readiness and process contract",
+      "kind": "planned",
+      "sources": ["test-results.json#/results/1/scenario_name", "plan.md#L19-L19"]
+    },
+    {
+      "id": "process-purpose",
+      "text": "Create a READY sandbox; verify stdout, stderr, deliberate exit 7, non-root UID and requested placement.",
+      "kind": "planned",
+      "sources": ["plan.md#L19-L19", "supplemental/test-sdk.txt#L190-L208", "supplemental/test-main.txt#L294-L301"]
+    },
+    {
+      "id": "process-outcome",
+      "text": "ERROR: one CreateSandbox call returned grpc_failed_precondition, gRPC 9, because no shared supervisor was attached; process checks did not complete.",
+      "kind": "observed",
+      "sources": ["test-results.json#/results/1", "attempts/b51d15052ecc4dabb60bcd964e997ddc.json#/error", "supplemental/gateway-attempt1.txt#L33-L37", "report.md#L139-L139"]
+    },
+    {
+      "id": "workspace-label",
+      "text": "Persistent workspace lifecycle",
+      "kind": "planned",
+      "sources": ["test-results.json#/results/2/scenario_name", "plan.md#L20-L20"]
+    },
+    {
+      "id": "workspace-purpose",
+      "text": "Write a marker, stop/start the sandbox and require exact readback with unchanged sandbox identity.",
+      "kind": "planned",
+      "sources": ["plan.md#L20-L20"]
+    },
+    {
+      "id": "workspace-outcome",
+      "text": "SKIP: process_dependency_failed; marker persistence and restart behavior were not tested.",
+      "kind": "observed",
+      "sources": ["test-results.json#/results/2", "attempts/51500adbe6b246b7a6f5fc55539a2835.json#/error", "report.md#L140-L140"]
+    },
+    {
+      "id": "network-label",
+      "text": "Scoped reachable-control network contrast",
+      "kind": "planned",
+      "sources": ["test-results.json#/results/3/scenario_name", "plan.md#L21-L21"]
+    },
+    {
+      "id": "network-purpose",
+      "text": "Compare worker-to-gateway metrics reachability with sandbox TCP port 2222; this is not a policy-enforcement test.",
+      "kind": "planned",
+      "sources": ["plan.md#L21-L21", "supplemental/test-main.txt#L304-L348"]
+    },
+    {
+      "id": "network-outcome",
+      "text": "SKIP: sandbox_not_created; the planned reachability contrast produced no result and proves no enforcement boundary.",
+      "kind": "observed",
+      "sources": ["test-results.json#/results/3", "attempts/785e4e3109ae4a3ba2fbfbd6236a055b.json#/error", "report.md#L141-L141"]
+    },
+    {
+      "id": "cleanup-label",
+      "text": "Run-owned sandbox deletion",
+      "kind": "planned",
+      "sources": ["test-results.json#/results/4/scenario_name", "plan.md#L22-L22"]
+    },
+    {
+      "id": "cleanup-purpose",
+      "text": "Delete only the run-owned sandbox; verify SDK and Kubernetes object disappearance, not PVC reclamation.",
+      "kind": "planned",
+      "sources": ["plan.md#L22-L22", "supplemental/test-main.txt#L351-L385"]
+    },
+    {
+      "id": "cleanup-outcome",
+      "text": "SKIP: sandbox_not_created; no usable sandbox existed for the planned deletion contract.",
+      "kind": "observed",
+      "sources": ["test-results.json#/results/4", "attempts/037e8510d1c64d6794b0c0889d79f1cc.json#/error", "report.md#L142-L146"]
+    },
+    {
+      "id": "ready-not-attached",
+      "text": "Gateway and supervisor were Ready under restricted-v2; readiness did not establish supervisor attachment or sandbox execution.",
+      "kind": "observed",
+      "sources": ["supplemental/placement-apply.txt#L5-L33", "report.md#L150-L152"]
+    },
+    {
+      "id": "gateway-storage",
+      "text": "Gateway mounted a Bound 10Gi data PVC on the specified worker; this was not a validated persistent sandbox workspace.",
+      "kind": "observed",
+      "sources": ["supplemental/deployment-apply.json#/resources/0/spec/volumes/0", "supplemental/placement-apply.txt#L5-L18", "supplemental/placement-apply.txt#L35-L42", "report.md#L82-L87"]
+    },
+    {
+      "id": "observed-topology",
+      "text": "Observed setup: PoC worker/pinned SDK, gateway, shared supervisor and gateway data PVC; assignment was missing, not a healthy connection.",
+      "kind": "observed",
+      "sources": ["report.md#L92-L122", "supplemental/placement-apply.txt#L5-L42", "supplemental/test-observations.txt#L1-L1"]
+    },
+    {
+      "id": "assignment-blocked",
+      "text": "The gateway-topology create path stopped at the missing shared-supervisor assignment; no usable sandbox or persistent workspace was created.",
+      "kind": "observed",
+      "sources": ["supplemental/gateway-attempt1.txt#L27-L38", "report.md#L25-L25", "report.md#L146-L150"]
+    },
+    {
+      "id": "fresh-builds",
+      "text": "All three pinned-source UBI builds completed and pushed: gateway, supervisor and sandbox; zero build retries.",
+      "kind": "observed",
+      "sources": ["supplemental/build-gateway-status.txt#L1-L1", "supplemental/build-supervisor-status.txt#L1-L1", "supplemental/build-sandbox-status.txt#L1-L1", "report.md#L53-L71", "state.json#/phases/build"]
+    },
+    {
+      "id": "compilation-not-proof",
+      "text": "The full-feature gateway build included openshell-prover and vendored Z3; no standalone prover execution or formal-verification behavior was validated.",
+      "kind": "observed",
+      "sources": ["supplemental/build-gateway.txt#L8-L13", "report.md#L33-L33", "report.md#L71-L71"]
+    },
+    {
+      "id": "operator-assistance",
+      "text": "Operator assistance included same-revision Dockerfile designs, branch-protection attestation and a source screenshot; none establishes independent validation.",
+      "kind": "observed",
+      "sources": ["supplemental/source-analysis.txt#L18-L20", "report.md#L41-L47"]
+    },
+    {
+      "id": "platform-scope",
+      "text": "Existing prerequisites, service account and node guidance were adopted; capacity, isolation prerequisites and unattended reproducibility were not independently qualified.",
+      "kind": "observed",
+      "sources": ["plan.md#L10-L13", "report.md#L41-L47", "report.md#L90-L90", "report.md#L191-L191"]
+    },
+    {
+      "id": "transient-not-success",
+      "text": "A transient Sandbox CR was rolled back after assignment failed; default workspace metadata and intermediate creation logs were not lifecycle success.",
+      "kind": "observed",
+      "sources": ["supplemental/gateway-attempt1.txt#L7-L7", "supplemental/gateway-attempt1.txt#L26-L38", "report.md#L146-L146"]
+    },
+    {
+      "id": "later-diagnostics",
+      "text": "Later curl diagnostics verified TLS and token acceptance on an empty Attach request, then returned gRPC 3 before hello; they did not establish Rust attachment.",
+      "kind": "observed",
+      "sources": ["supplemental/attachment-diagnostics.txt#L5-L18"]
+    },
+    {
+      "id": "logger-gap",
+      "text": "Source inspection found shorthand logging discarded structured error fields; the generic attachment warning hid the underlying error.",
+      "kind": "observed",
+      "sources": ["supplemental/attachment-diagnostics.txt#L19-L21"]
+    },
+    {
+      "id": "root-cause-unknown",
+      "text": "The Rust supervisor attachment root cause remains unknown; TLS, token, network policy, product defect and platform incompatibility are not established causes.",
+      "kind": "observed",
+      "sources": ["report.md#L150-L159", "supplemental/attachment-diagnostics.txt#L23-L26"]
+    },
+    {
+      "id": "totals",
+      "text": "Original totals: 1 pass, 0 fail, 1 error, 3 skip, 0 incomplete; five terminal records, not five successful checks.",
+      "kind": "observed",
+      "sources": ["test-results.json#/totals", "test-results.json#/results", "report.md#L144-L144"]
+    },
+    {
+      "id": "bounded-result",
+      "text": "Source-build feasibility, workload readiness and narrow mTLS behavior were demonstrated; the usable SDK-driven sandbox lifecycle objective was not achieved.",
+      "kind": "observed",
+      "sources": ["report.md#L25-L25", "report.md#L185-L185"]
+    },
+    {
+      "id": "diagnostics-not-checks",
+      "text": "Later diagnostics neither change the five original outcomes nor add a sixth scenario; execution accounting is complete despite the blocked objective.",
+      "kind": "observed",
+      "sources": ["report.md#L159-L175", "supplemental/attachment-diagnostics.txt#L23-L26", "state.json#/phases/poc_execute"]
+    },
+    {
+      "id": "trace-gap",
+      "text": "Evidence gap: missing_trace. Retained logs and action observations are not a complete distributed trace.",
+      "kind": "inferred",
+      "sources": ["index.json#/coverage_gaps", "supplemental/test-observations.txt#L1-L1", "report.md#L210-L212"]
+    },
+    {
+      "id": "security-scope",
+      "text": "Policy boundaries remain unknown, not a demonstrated product failure; port reachability, NetworkPolicy presence and readiness do not prove enforcement.",
+      "kind": "inferred",
+      "sources": ["plan.md#L21-L24", "report.md#L33-L33", "report.md#L88-L88", "report.md#L152-L152", "report.md#L185-L185"]
+    },
+    {
+      "id": "qualification-limits",
+      "text": "No production qualification, Kubernetes portability or OpenShift AI integration/certification was established; GPU, HA, load and isolation validation were excluded.",
+      "kind": "observed",
+      "sources": ["report.md#L33-L35", "report.md#L185-L185"]
+    },
+    {
+      "id": "publication-limits",
+      "text": "Blog ineligible; cloud publication blocked and outside authorization. The prior Drive refresh failed and was not retried; prepared inputs are not rendered artifacts.",
+      "kind": "observed",
+      "sources": ["report.md#L23-L23", "report.md#L175-L181", "state.json#/phases/blog_post/status"]
+    },
+    {
+      "id": "next-attachment",
+      "text": "Investigate the real Rust Attach handshake with separately authorized, sanitized error context; establish hello, pool membership and a sustained assignment stream.",
+      "kind": "recommendation",
+      "sources": ["report.md#L187-L189", "supplemental/attachment-diagnostics.txt#L19-L25"]
+    },
+    {
+      "id": "next-validation",
+      "text": "After attachment and explicit execution authorization, capture future process, workspace, scoped network and deletion checks as new attempts; preserve these original outcomes.",
+      "kind": "recommendation",
+      "sources": ["report.md#L187-L190"]
+    },
+    {
+      "id": "next-guardrails",
+      "text": "Do not weaken TLS or expand RBAC based on an assumed cause; retain source/image identities and assistance disclosures, and require separate cloud authorization.",
+      "kind": "recommendation",
+      "sources": ["report.md#L188-L192"]
+    }
+  ],
+  "conflicts": [],
+  "coverage_gaps": ["missing_trace"],
+  "slides": [
+    {
+      "id": "objective",
+      "section": "objective",
+      "title": "OpenShell: runtime intent and the lifecycle question",
+      "title_claim_ids": ["project-definition", "objective"],
+      "bullet_claim_ids": ["project-definition", "objective", "source-image"],
+      "narration": [
+        {"text": "OpenShell is intended to run autonomous AI agents under declared policy controls.", "claim_ids": ["project-definition"]},
+        {"text": "Its pinned README describes controls for file access, system calls and network connections.", "claim_ids": ["source-intent"]},
+        {"text": "It also describes formal checks of policy changes before they are applied.", "claim_ids": ["source-intent"]},
+        {"text": "These are project design claims, not security results from this run.", "claim_ids": ["project-definition", "source-intent"]},
+        {"text": "The PoC asked whether fresh UBI builds could run under OpenShift restricted-v2 and support a usable sandbox lifecycle.", "claim_ids": ["objective"]},
+        {"text": "The intended client path used the SDK from the pinned source revision.", "claim_ids": ["objective"]},
+        {"text": "The supplied README image gives source context, not a view of a working application.", "claim_ids": ["source-image"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "identity",
+      "visual_id": "source-context",
+      "checks": []
+    },
+    {
+      "id": "testing-access-process",
+      "section": "testing",
+      "title": "Access passed; sandbox creation returned an error",
+      "title_claim_ids": ["access-outcome", "process-outcome"],
+      "bullet_claim_ids": ["recorded-accounting", "access-outcome", "process-outcome"],
+      "narration": [
+        {"text": "The access check tested workload readiness and mutual TLS, using client certificates for authenticated API calls.", "claim_ids": ["access-label", "access-purpose"]},
+        {"text": "It passed: both workloads were ready, and authenticated Health and ListSandboxes calls succeeded.", "claim_ids": ["access-outcome"]},
+        {"text": "ListSandboxes without a client certificate returned UNAUTHENTICATED, so the negative control also behaved as required.", "claim_ids": ["access-outcome"]},
+        {"text": "Health alone was not used as the authentication rejection test.", "claim_ids": ["access-purpose"]},
+        {"text": "The process check aimed to create a ready sandbox and verify output, deliberate exit seven, non-root identity and placement.", "claim_ids": ["process-label", "process-purpose"]},
+        {"text": "Its single CreateSandbox call returned gRPC status nine, recorded as a failed precondition error.", "claim_ids": ["process-outcome"]},
+        {"text": "No shared supervisor was attached to the gateway, so the planned process checks did not complete.", "claim_ids": ["process-outcome"]},
+        {"text": "These are original recorded outcomes, not checks replayed for this presentation.", "claim_ids": ["recorded-accounting"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "checks",
+      "visual_id": null,
+      "checks": [
+        {"scenario_id": "5ebba8a479cf76bfdc022649", "label_claim_id": "access-label", "purpose_claim_id": "access-purpose", "narration_sentence_indices": [0, 1, 2, 3]},
+        {"scenario_id": "4ccfd85f6aea56d958b6d2a9", "label_claim_id": "process-label", "purpose_claim_id": "process-purpose", "narration_sentence_indices": [4, 5, 6]}
+      ]
+    },
+    {
+      "id": "testing-dependent-checks",
+      "section": "testing",
+      "title": "Three dependent checks were skipped, not passed",
+      "title_claim_ids": ["workspace-outcome", "network-outcome", "cleanup-outcome"],
+      "bullet_claim_ids": ["workspace-outcome", "network-outcome", "cleanup-outcome"],
+      "narration": [
+        {"text": "The workspace check would write a marker, stop and restart the sandbox, then verify its identity and marker.", "claim_ids": ["workspace-label", "workspace-purpose"]},
+        {"text": "It was skipped because the process dependency failed, so persistence and restart behavior were not tested.", "claim_ids": ["workspace-outcome"]},
+        {"text": "The network check planned a gateway metrics reachability control followed by a connection attempt to sandbox port twenty-two twenty-two.", "claim_ids": ["network-label", "network-purpose"]},
+        {"text": "It was skipped because no usable sandbox was created, so the planned contrast produced no result.", "claim_ids": ["network-outcome"]},
+        {"text": "Even a completed port contrast would not prove policy enforcement.", "claim_ids": ["network-purpose"]},
+        {"text": "The cleanup check would verify deletion of only the run-owned sandbox through the SDK and Kubernetes objects.", "claim_ids": ["cleanup-label", "cleanup-purpose"]},
+        {"text": "It was skipped because no usable sandbox existed for that deletion contract.", "claim_ids": ["cleanup-outcome"]},
+        {"text": "Logical disappearance would not establish storage reclamation.", "claim_ids": ["cleanup-purpose"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "checks",
+      "visual_id": null,
+      "checks": [
+        {"scenario_id": "a0bffaaa20bd2b6a1fdbcc3b", "label_claim_id": "workspace-label", "purpose_claim_id": "workspace-purpose", "narration_sentence_indices": [0, 1]},
+        {"scenario_id": "ee994a88d9d2b7535a073e53", "label_claim_id": "network-label", "purpose_claim_id": "network-purpose", "narration_sentence_indices": [2, 3, 4]},
+        {"scenario_id": "778e2621d6021e9ddde5efdc", "label_claim_id": "cleanup-label", "purpose_claim_id": "cleanup-purpose", "narration_sentence_indices": [5, 6, 7]}
+      ]
+    },
+    {
+      "id": "setup-topology",
+      "section": "setup",
+      "title": "Ready components did not supply an attached supervisor",
+      "title_claim_ids": ["ready-not-attached", "assignment-blocked"],
+      "bullet_claim_ids": ["ready-not-attached", "gateway-storage", "assignment-blocked"],
+      "narration": [
+        {"text": "The observed setup contained the PoC worker, gateway, shared supervisor and gateway data volume.", "claim_ids": ["observed-topology"]},
+        {"text": "The worker used the pinned SDK to reach the gateway, where the API access controls passed.", "claim_ids": ["observed-topology", "access-outcome"]},
+        {"text": "The gateway and supervisor were ready under restricted-v2, but that did not establish application-level attachment.", "claim_ids": ["ready-not-attached"]},
+        {"text": "The gateway mounted a bound ten-gibibyte data volume on the specified worker.", "claim_ids": ["gateway-storage"]},
+        {"text": "That volume was not the persistent sandbox workspace planned for lifecycle validation.", "claim_ids": ["gateway-storage"]},
+        {"text": "The stopped red path marks the missing assignment dependency, not successful traffic between gateway and supervisor.", "claim_ids": ["observed-topology", "assignment-blocked"]},
+        {"text": "No usable sandbox or validated persistent workspace appears in this observed topology.", "claim_ids": ["assignment-blocked"]}
+      ],
+      "graph": {
+        "title": "Observed setup / assignment missing",
+        "loop": 12,
+        "nodes": [
+          {"id": "worker", "label": "PoC worker", "sub": "Pinned SDK", "kind": "external", "pos": [-3, 0, 1], "anchor": "left"},
+          {"id": "gateway", "label": "Gateway", "sub": "Ready", "kind": "pod", "pos": [0, 0, 0], "anchor": "up"},
+          {"id": "supervisor", "label": "Supervisor", "sub": "Ready / not attached", "kind": "pod", "pos": [3, 0, -1], "anchor": "right"},
+          {"id": "data", "label": "Data PVC", "sub": "10Gi / Bound", "kind": "store", "pos": [0, -2, 1.5], "anchor": "down"}
+        ],
+        "edges": [["worker", "gateway"], ["gateway", "data"], ["gateway", "supervisor"]],
+        "paths": {
+          "api": {"via": ["worker", "gateway"]},
+          "assignment-missing": {"via": ["gateway", "supervisor"]}
+        },
+        "acts": [
+          {"id": 0, "t0": 0, "t1": 6, "title": "mTLS API controls passed", "path": "api", "tone": "positive", "status": {"label": "API check", "value": "PASS"}},
+          {"id": 1, "t0": 6, "t1": 12, "title": "No attached supervisor", "path": "assignment-missing", "stopAt": 0.45, "tone": "negative", "status": {"label": "Assignment", "value": "MISSING"}}
+        ]
+      },
+      "graph_claim_ids": ["observed-topology", "ready-not-attached", "gateway-storage", "access-outcome", "assignment-blocked"],
+      "layout": "topology",
+      "visual_id": null,
+      "checks": []
+    },
+    {
+      "id": "setup-build-scope",
+      "section": "setup",
+      "title": "Fresh builds completed, with disclosed operator assistance",
+      "title_claim_ids": ["fresh-builds", "operator-assistance"],
+      "bullet_claim_ids": ["fresh-builds", "compilation-not-proof", "operator-assistance", "platform-scope"],
+      "narration": [
+        {"text": "All three components were freshly built from the pinned revision with UBI final images.", "claim_ids": ["fresh-builds"]},
+        {"text": "The gateway, supervisor and sandbox builds completed and pushed with no build retries.", "claim_ids": ["fresh-builds"]},
+        {"text": "The full-feature gateway build included the prover and vendored Z3, but compilation did not execute a proof.", "claim_ids": ["compilation-not-proof"]},
+        {"text": "The operator supplied same-revision Dockerfile designs that were adapted to build fresh Rust binaries.", "claim_ids": ["operator-assistance"]},
+        {"text": "The worker adopted the operator's branch-protection attestation rather than independently verifying repository administration settings.", "claim_ids": ["operator-assistance"]},
+        {"text": "The operator also supplied the source screenshot, existing prerequisites, service account and node guidance.", "claim_ids": ["operator-assistance", "platform-scope"]},
+        {"text": "This run did not independently qualify capacity, underlying isolation prerequisites or fully unattended reproducibility.", "claim_ids": ["platform-scope"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "summary",
+      "visual_id": null,
+      "checks": []
+    },
+    {
+      "id": "execution-attachment",
+      "section": "execution",
+      "title": "Attachment remained blocked; later curl did not fix it",
+      "title_claim_ids": ["assignment-blocked", "later-diagnostics", "root-cause-unknown"],
+      "bullet_claim_ids": ["transient-not-success", "later-diagnostics", "logger-gap", "root-cause-unknown"],
+      "narration": [
+        {"text": "The gateway briefly created a Sandbox resource, then rolled it back when supervisor assignment failed.", "claim_ids": ["transient-not-success"]},
+        {"text": "That intermediate message and default workspace metadata did not establish a usable sandbox or persistent workspace.", "claim_ids": ["transient-not-success"]},
+        {"text": "Later curl diagnostics from the supervisor verified TLS reachability, but the GET response was not a health success.", "claim_ids": ["later-diagnostics"]},
+        {"text": "An empty Attach request accepted the token and reached protocol handling, then returned status three before hello.", "claim_ids": ["later-diagnostics"]},
+        {"text": "This did not establish the Rust client's attachment, pool registration or sustained assignment stream.", "claim_ids": ["later-diagnostics"]},
+        {"text": "Source inspection found that shorthand logging discarded the structured error fields needed to explain the warning.", "claim_ids": ["logger-gap"]},
+        {"text": "The root cause remains unknown, and no concrete safe correction was established.", "claim_ids": ["root-cause-unknown"]},
+        {"text": "These later diagnostics do not change any original scenario result.", "claim_ids": ["diagnostics-not-checks"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "summary",
+      "visual_id": null,
+      "checks": []
+    },
+    {
+      "id": "results",
+      "section": "results",
+      "title": "Build and access evidence survived a blocked lifecycle",
+      "title_claim_ids": ["bounded-result"],
+      "bullet_claim_ids": ["totals", "bounded-result", "diagnostics-not-checks"],
+      "narration": [
+        {"text": "The final recorded totals are one pass, zero failures, one error, three skips and zero incomplete records.", "claim_ids": ["totals"]},
+        {"text": "Zero failures does not mean success, because the operational error blocked the lifecycle and caused dependent skips.", "claim_ids": ["totals", "process-outcome", "workspace-outcome", "network-outcome", "cleanup-outcome"]},
+        {"text": "The positive result is narrower: source builds completed, workloads were ready, and the tested mTLS API behavior worked.", "claim_ids": ["bounded-result"]},
+        {"text": "The central objective of a usable SDK-driven sandbox lifecycle was not achieved.", "claim_ids": ["bounded-result"]},
+        {"text": "Execution accounting is complete because all five terminal records exist, not because all checks passed.", "claim_ids": ["totals", "diagnostics-not-checks"]},
+        {"text": "Later setup diagnostics are context, not a sixth scenario or replacement evidence.", "claim_ids": ["diagnostics-not-checks"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "summary",
+      "visual_id": null,
+      "checks": []
+    },
+    {
+      "id": "limitations",
+      "section": "limitations",
+      "title": "Unknown policy boundaries are not a failed security verdict",
+      "title_claim_ids": ["security-scope"],
+      "bullet_claim_ids": ["trace-gap", "security-scope", "qualification-limits", "publication-limits"],
+      "narration": [
+        {"text": "The evidence index retains the missing trace gap, so these logs are not a complete distributed trace.", "claim_ids": ["trace-gap"]},
+        {"text": "The intended policy boundaries remain unknown here, rather than demonstrated product failures.", "claim_ids": ["security-scope"]},
+        {"text": "Port reachability and the presence of a NetworkPolicy object do not establish enforcement.", "claim_ids": ["security-scope"]},
+        {"text": "This run did not qualify production use, Kubernetes portability or OpenShift AI integration or certification.", "claim_ids": ["qualification-limits"]},
+        {"text": "GPU execution, high availability, load and isolation validation were outside scope.", "claim_ids": ["qualification-limits"]},
+        {"text": "The blog remained ineligible, and cloud publication remained blocked outside authorization.", "claim_ids": ["publication-limits"]},
+        {"text": "The prior Drive refresh failed and was not retried.", "claim_ids": ["publication-limits"]},
+        {"text": "Prepared presentation inputs do not mean a presentation, video or cloud artifact has been produced.", "claim_ids": ["publication-limits"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "summary",
+      "visual_id": null,
+      "checks": []
+    },
+    {
+      "id": "recommendation",
+      "section": "recommendation",
+      "title": "Investigate the real Attach handshake before lifecycle work",
+      "title_claim_ids": ["next-attachment"],
+      "bullet_claim_ids": ["next-attachment", "next-validation", "next-guardrails"],
+      "narration": [
+        {"text": "Investigate the Rust supervisor's real Attach handshake under separate authorization, using narrowly scoped and sanitized error context.", "claim_ids": ["next-attachment"]},
+        {"text": "Establish the hello exchange, pool membership and sustained assignment stream before another lifecycle attempt.", "claim_ids": ["next-attachment"]},
+        {"text": "Do not weaken TLS or expand permissions based on an assumed cause.", "claim_ids": ["next-guardrails"]},
+        {"text": "After attachment works and execution is authorized, record the remaining lifecycle checks as new attempts.", "claim_ids": ["next-validation"]},
+        {"text": "Keep the original error and skips, and do not rerun tests merely to improve presentation evidence.", "claim_ids": ["next-validation"]},
+        {"text": "Retain the source revision, immutable image identities and operator-assistance disclosures for future work.", "claim_ids": ["next-guardrails"]},
+        {"text": "Keep the blog ineligible and seek explicit cloud authorization before any refresh or upload.", "claim_ids": ["publication-limits", "next-guardrails"]}
+      ],
+      "graph": null,
+      "graph_claim_ids": [],
+      "layout": "summary",
+      "visual_id": null,
+      "checks": []
+    }
+  ]
+}

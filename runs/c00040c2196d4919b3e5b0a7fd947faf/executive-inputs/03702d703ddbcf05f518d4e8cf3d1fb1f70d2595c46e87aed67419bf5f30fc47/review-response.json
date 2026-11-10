@@ -1,0 +1,123 @@
+{
+  "schema_version": 3,
+  "reviewer": "configured-opencode",
+  "role": "independent content reviewer, not author",
+  "approved": true,
+  "findings": [],
+  "narrative_sha256": "12b23a36b45696d908ec0e62efac72980a194595f7dc0cf70d9a998d4a2aefa0",
+  "evidence_sha256": "4bbfe024bdc4abc896cf417543e4bd561c666f2ca9596b8a51254b0273be2386",
+  "scenes_sha256": "992b9abc70768cdeb2d0fde94c6264dbb95c38ee7985039fdcfd4f4b46f7f8b9",
+  "visuals_sha256": "2924896aad0f8c9a40c558a03712cfe180ce4f30b2f94f04b45720341ee79158",
+  "decision_basis": "Approved after independent semantic review of all ledger claims, factual slide titles, visible claim references, mapped scenario speech, narration entries, graph content and visual manifest text against the exact verified archive. Structural checks were supporting checks, not the approval decision itself. Approval is for these exact content bytes, not successful PoC validation, rendered output, publication, pixel acceptance or human acceptance.",
+  "checked_evidence": {
+    "archive": "/workspace/evidence-bundles/c00040c2196d4919b3e5b0a7fd947faf/4bbfe024bdc4abc896cf417543e4bd561c666f2ca9596b8a51254b0273be2386.zip",
+    "run_id": "c00040c2196d4919b3e5b0a7fd947faf",
+    "archive_members": 48,
+    "expanded_bytes": 181597,
+    "directory_comparison": "All 48 exact archive members matched the corresponding bytes in /workspace/verified-evidence.",
+    "core_members": ["index.json", "attempt-index.json", "test-results.json", "state.json", "report.md", "plan.md", "evaluation.md", "supplemental-index.json"],
+    "attempt_payloads": 19,
+    "supplemental_records": 21,
+    "supplemental_scope": "Read retained source analysis, both test definitions, original action observations, all three component build status records and build excerpts, image identities, Helm values, both deployment and placement snapshots, both gateway and supervisor log excerpts, and the explicitly later authored attachment-diagnostics summary.",
+    "source_revision": "f4a6137513b777c9b362be54baf388f7d45398aa",
+    "original_execution_id": "0329dd4aa56e464092de68f894abe83a",
+    "coverage_gaps": ["missing_trace"],
+    "evidence_capture_timestamp": null
+  },
+  "validators": {
+    "autopoc.evidence.verify_bundle": "PASS on the exact original ZIP, including manifest membership, hashes, sizes, sanitization, supplemental provenance, attempts and final-result consistency",
+    "autopoc.executive_story.validate_story": "PASS using members read directly from the verified ZIP; all 103 source references, comprising 87 distinct selectors, resolved",
+    "autopoc.executive_story.validate_scene_plan": "PASS with exact storyboard order and supported speech/timing policy",
+    "autopoc.executive_visuals.verify_visuals": "PASS on exact visuals.zip, including exact membership, manifest schema, PNG chunks/CRC, asset hash and dimensions",
+    "additional_checks": "PASS: original scenario order and uniqueness, extracted-byte equality, reference speech identities, visible opening definition, explicit graph positions, mapped row speech coverage and date-free narration"
+  },
+  "coverage_counts": {
+    "ledger_claims": 42,
+    "planned_claims": 13,
+    "observed_claims": 24,
+    "inferred_claims": 2,
+    "recommendation_claims": 3,
+    "slides_and_titles": 9,
+    "visible_bullet_references": 30,
+    "narration_entries": 66,
+    "spoken_words_whitespace_count": 931,
+    "minimum_entry_words": 7,
+    "maximum_entry_words": 19,
+    "maximum_slide_words": 118,
+    "maximum_title_characters": 59,
+    "maximum_claim_characters": 175,
+    "original_scenario_rows": 5,
+    "mapped_row_narration_entries": 15,
+    "graphs": 1,
+    "graph_nodes": 4,
+    "graph_edges": 3,
+    "graph_paths": 2,
+    "graph_acts": 2,
+    "visual_assets": 1,
+    "unused_ledger_claims": 0,
+    "spoken_date_pattern_hits": 0
+  },
+  "results_verified": {"pass": 1, "fail": 0, "error": 1, "skip": 3, "incomplete": 0},
+  "scenario_review": [
+    {"scenario_id": "5ebba8a479cf76bfdc022649", "status": "pass", "slide": "testing-access-process", "narration_sentence_indices": [0, 1, 2, 3], "assessment": "Label, purpose and speech agree with the original readiness and access check. Authenticated Health/ListSandboxes success and no-client-certificate ListSandboxes UNAUTHENTICATED are supported. Health alone is explicitly not the negative control."},
+    {"scenario_id": "4ccfd85f6aea56d958b6d2a9", "status": "error", "slide": "testing-access-process", "narration_sentence_indices": [4, 5, 6], "assessment": "Planned READY, output, deliberate exit 7, UID and placement checks remain planned. One CreateSandbox call failed with gRPC 9 because no shared supervisor was attached; nested operation records are not falsely counted as create retries or extra scenarios."},
+    {"scenario_id": "a0bffaaa20bd2b6a1fdbcc3b", "status": "skip", "slide": "testing-dependent-checks", "narration_sentence_indices": [0, 1], "assessment": "Marker/identity lifecycle purpose is accurate; process_dependency_failed is correctly a skip with no persistence or restart result."},
+    {"scenario_id": "ee994a88d9d2b7535a073e53", "status": "skip", "slide": "testing-dependent-checks", "narration_sentence_indices": [2, 3, 4], "assessment": "Worker gateway-metrics control and sandbox TCP 2222 contrast are described as planned and skipped because sandbox_not_created. No reachability or policy-enforcement result is fabricated."},
+    {"scenario_id": "778e2621d6021e9ddde5efdc", "status": "skip", "slide": "testing-dependent-checks", "narration_sentence_indices": [5, 6, 7], "assessment": "Run-owned SDK/CR/pod deletion purpose and sandbox_not_created skip are accurate. Rollback is not treated as a cleanup pass; PVC reclamation is not asserted."}
+  ],
+  "slide_review": [
+    {"id": "objective", "narration_entries_reviewed": 7, "assessment": "Visible project definition comes first. README capabilities are intended design claims; the PoC question is separate. Pinned README image is source context only."},
+    {"id": "testing-access-process", "narration_entries_reviewed": 8, "assessment": "Both row mappings, title and visible outcomes preserve the narrow pass and blocking error. Final shared accounting sentence is appropriately unmapped."},
+    {"id": "testing-dependent-checks", "narration_entries_reviewed": 8, "assessment": "Three ordered rows each have their own contiguous speech, correct skip reasons and appropriately limited planned purposes."},
+    {"id": "setup-topology", "narration_entries_reviewed": 7, "assessment": "All four nodes and their short labels are source-backed. Explicit positions are diagram layout, not measured physical coordinates. Worker-to-gateway positive API path is supported; gateway-to-supervisor negative stopped assignment path describes an unmet dependency, not successful attachment or actual healthy traffic. Gateway data PVC is not a validated sandbox workspace."},
+    {"id": "setup-build-scope", "narration_entries_reviewed": 7, "assessment": "Fresh pinned-source UBI builds and zero build retries are supported. Build success does not imply sandbox execution or prover execution. Operator designs, branch-protection attestation, screenshot and adopted prerequisites are disclosed without claiming independent qualification."},
+    {"id": "execution-attachment", "narration_entries_reviewed": 8, "assessment": "Transient CR/default metadata are qualified. Later curl TLS/token acceptance, HTTP 404, empty Attach status 3 before hello and logger limitations are supported by the later observation summary, not promoted to canonical scenario results. Rust attachment root cause remains unknown; no correction is invented."},
+    {"id": "results", "narration_entries_reviewed": 6, "assessment": "Exact five-category totals and blocked central objective are explicit. Complete accounting is not described as successful validation; diagnostics add no sixth scenario."},
+    {"id": "limitations", "narration_entries_reviewed": 8, "assessment": "missing_trace is retained. Unknown policy boundaries are not declared defective. No production, portability, GPU, HA, load, isolation or OpenShift AI qualification is fabricated. Publication limitations and prepared-input caveat are supported; no media availability is asserted."},
+    {"id": "recommendation", "narration_entries_reviewed": 7, "assessment": "Speech starts with the next action, not a lengthy recap. Real Attach investigation, separate execution/cloud authorization, preserved original outcomes, immutable identities and no speculative TLS/RBAC relaxation follow source recommendations."}
+  ],
+  "all_claim_ids_reviewed": [
+    "project-definition", "source-intent", "objective", "source-image", "recorded-accounting",
+    "access-label", "access-purpose", "access-outcome", "process-label", "process-purpose", "process-outcome",
+    "workspace-label", "workspace-purpose", "workspace-outcome", "network-label", "network-purpose", "network-outcome",
+    "cleanup-label", "cleanup-purpose", "cleanup-outcome", "ready-not-attached", "gateway-storage", "observed-topology",
+    "assignment-blocked", "fresh-builds", "compilation-not-proof", "operator-assistance", "platform-scope",
+    "transient-not-success", "later-diagnostics", "logger-gap", "root-cause-unknown", "totals", "bounded-result",
+    "diagnostics-not-checks", "trace-gap", "security-scope", "qualification-limits", "publication-limits",
+    "next-attachment", "next-validation", "next-guardrails"
+  ],
+  "conflict_assessment": "No material report/result disagreement requiring a conflict entry was found. Intermediate successful-creation logs are explicitly qualified as transient rollback, and completed execution bookkeeping is distinguished from the blocked application objective.",
+  "speech_identity_review": {
+    "reference": "/workspace/reference/run.json",
+    "engine": "kokoro",
+    "voice": "af_heart",
+    "speed": 0.95,
+    "model_manifest_sha256": "cc53829edc24d67ed317946d25867ec1236909f374f4a33c5a22355c69f00c24",
+    "lexicon_sha256": "32f4a336d574f1a517471a4df63722c38bf1ec180fc449ce1ea453357fc671a5",
+    "assessment": "Both exact speech hashes match the supplied renderer reference. No guessed durations or pronunciation markup are present. No PoC execution dates/timestamps are spoken, including spelled-out dates. Simple English preserves scope and uncertainty. Timing validation is not measured audio validation."
+  },
+  "visual_review": {
+    "scope": "manifest/text only; this independent reviewer did not read PNG pixels visually",
+    "archive_members": ["manifest.json", "assets/source-context.png"],
+    "asset_id": "source-context",
+    "asset_sha256": "420b14dcb4730c473fb90865e8a955815365b2d6b6eb40e7bdbc56fba70733f3",
+    "width": 861,
+    "height": 500,
+    "assessment": "Caption, alt text and attribution consistently identify an operator-supplied public pinned README source capture, not runtime evidence. Source URL includes the retained exact revision; definition claim cites published source excerpts. captured_at is correctly omitted because the recorded calendar day has no UTC time-of-day. The gap records this limit without inventing a midnight timestamp.",
+    "separate_inspection_record": "/workspace/visual-inspection.json",
+    "separate_record_assessment": "Read as a separate model-inspection record; its asset hash and dimensions match the verified PNG. Its statements are not this reviewer's own pixel observations and do not establish human acceptance."
+  },
+  "nonblocking_observations": [
+    "SDK, UBI, PVC and RPC names remain technical vocabulary. Mutual TLS is explained, and the short focused sentences make the recorded result and limits intelligible; further acronym expansion is optional editorial preference.",
+    "Seven-word entries below the 10-20-word style target are clear complete sentences, not a contract failure. The longest narration entry is 19 whitespace-delimited words.",
+    "The stopped directed assignment path is acceptable as a dependency depiction because graph title, supervisor sublabel, negative MISSING act, visible limitations and narration explicitly deny successful attachment.",
+    "Later attachment diagnostics are a retained authored observation summary, not a verbatim trace. The narrative preserves their later and non-scenario status and retains missing_trace."
+  ],
+  "limits": [
+    "No runtime tests, cluster commands, network/cloud operations, Git operations or credential-file reads were performed.",
+    "Narrative, scenes, visuals and evidence were not modified. Only review outcome files were written.",
+    "No PNG pixel inspection, browser layout/decode session, speech synthesis, audio listening, rendered-media inspection or human acceptance was performed by this reviewer.",
+    "No renderer image contents were independently inspected; speech identities were compared with the exact supplied local reference.",
+    "No sealing, rendering, dispatch, publication or claim that actual rendered media exists is part of this decision."
+  ]
+}

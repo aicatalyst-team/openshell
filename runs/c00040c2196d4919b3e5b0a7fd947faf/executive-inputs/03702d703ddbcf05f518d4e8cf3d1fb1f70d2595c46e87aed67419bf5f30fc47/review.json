@@ -1,0 +1,10 @@
+{
+  "schema_version": 3,
+  "reviewer": "configured-opencode",
+  "approved": true,
+  "findings": [],
+  "narrative_sha256": "12b23a36b45696d908ec0e62efac72980a194595f7dc0cf70d9a998d4a2aefa0",
+  "evidence_sha256": "4bbfe024bdc4abc896cf417543e4bd561c666f2ca9596b8a51254b0273be2386",
+  "scenes_sha256": "992b9abc70768cdeb2d0fde94c6264dbb95c38ee7985039fdcfd4f4b46f7f8b9",
+  "visuals_sha256": "2924896aad0f8c9a40c558a03712cfe180ce4f30b2f94f04b45720341ee79158"
+}

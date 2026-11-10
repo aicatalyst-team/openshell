@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "run_id": "c00040c2196d4919b3e5b0a7fd947faf",
+  "inspector": "primary configured-opencode image-capable agent",
+  "asset_sha256": "420b14dcb4730c473fb90865e8a955815365b2d6b6eb40e7bdbc56fba70733f3",
+  "width": 861,
+  "height": 500,
+  "method": "Read tool returned the actual PNG pixels for visual inspection.",
+  "observations": [
+    "Public project logo, badges, project definition and how-it-works text are visible.",
+    "No credential text, private browser chrome, account details or runtime results are visible."
+  ],
+  "limitations": [
+    "This is model visual inspection, not human media acceptance.",
+    "Source context does not validate deployed functionality.",
+    "Final rendered media and human listening are not evaluated here."
+  ]
+}
